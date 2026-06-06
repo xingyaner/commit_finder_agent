@@ -1,0 +1,26 @@
+{
+  "ROOT_CAUSE_ANALYSIS": {
+    "FINAL_ATTRIBUTION": {
+      "COMMIT_SHA": "c398e85bb02290cdd7207ad57c2c36ab787e11d8",
+      "COMMIT_MESSAGE": "Add Boost.Asio workflow (#1887)",
+      "AUTHOR": "Corentin AZAIS",
+      "DATE": "Mon Sep 15 15:20:30 2025 +0200",
+      "CONFIDENCE": "HIGH",
+      "WORKSPACE": "UPSTREAM",
+      "TARGET_FILE": "tests/networking_tests/CMakeLists.txt",
+      "TARGET_LINE": 10,
+      "CODE_BEFORE": "FetchContent_Declare(asio GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git GIT_TAG asio-1-32-0 GIT_SHALLOW TRUE)\nFetchContent_MakeAvailable(asio)",
+      "CODE_AFTER": "find_package(Boost QUIET CONFIG COMPONENTS system)\nif(Boost_FOUND)\n    add_library(glz_asio INTERFACE)\n    target_link_libraries(glz_asio INTERFACE Boost::system)\n    target_compile_definitions(glz_asio INTERFACE BOOST_ASIO_DYN_LINK)\nelse()\n    FetchContent_Declare(asio GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git GIT_TAG asio-1-32-0 GIT_SHALLOW TRUE)\n    FetchContent_MakeAvailable(asio)\n    add_library(glz_asio INTERFACE)\n    target_include_directories(glz_asio INTERFACE ${asio_SOURCE_DIR}/asio/include)\nendif()"
+    },
+    "CAUSAL_CHAIN": {
+      "TRIGGER": "The commit introduced a conditional dependency on Boost.Asio via `find_package(Boost ...)`. In the OSS-Fuzz build environment, Boost was not installed, so the `else()` branch was taken, which created the `glz_asio` interface library using the standalone Asio library fetched via `FetchContent`.",
+      "PROPAGATION": "The `glz_asio` target was then linked to multiple test executables (e.g., `json_reflection_test`, `beve_test`, `json_test`, `json_test_non_null`) via changes in `tests/CMakeLists.txt` (lines 23, 49). These test targets now required `glz_asio` at link time.",
+      "FAILURE": "During the AFL-address-sanitizer build, the linker (`/usr/bin/ld`) failed with `cannot find -lglz_asio`. This indicates that the `glz_asio` library target was not properly built or exported before the test targets attempted to link against it. The `FetchContent`-based Asio library likely failed to configure or build correctly in the OSS-Fuzz environment, leaving the `glz_asio` target undefined or incomplete.",
+      "ROOT_CAUSE": "The commit introduced a new CMake interface library (`glz_asio`) and linked it to existing test targets without ensuring that the library's dependencies (standalone Asio via `FetchContent`) would reliably build in all environments, particularly the constrained OSS-Fuzz build environment. The failure to find `-lglz_asio` is a direct consequence of this incomplete dependency management."
+    },
+    "COUNTERFACTUAL_REPLAY": {
+      "STATUS": "PASS",
+      "EXPLANATION": "Reverting commit c398e85bb02290cdd7207ad57c2c36ab787e11d8 removes the `glz_asio` target and its linkage to test executables, restoring the previous standalone Asio dependency management. This eliminates the linker error, confirming the commit is the root cause."
+    }
+  }
+}

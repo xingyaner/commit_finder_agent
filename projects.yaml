@@ -1,0 +1,15 @@
+- project: glaze
+  language: c++
+  error_time: '2025-09-16'
+  oss-fuzz_sha: 9ca5b10546881cf67145b6b8e707b7d79c7b4950
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-26e2e2a3-d98f-4f65-afe2-e539c8f4482d.txt
+  software_repo_url: https://github.com/stephenberry/glaze
+  software_sha: e5540f239d99853bc4611c8f348be565810fa6cd
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 192b038764086fcd174a3afd7341abe6e922701b0d8440524552fd9976e72a30
+  error_category: RC13
+  root_cause_commit: c398e85bb02290cdd7207ad57c2c36ab787e11d8
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'

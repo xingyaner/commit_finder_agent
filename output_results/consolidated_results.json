@@ -1,0 +1,11 @@
+[
+  {
+    "project_name": "glaze",
+    "root_cause_commit": "c398e85bb02290cdd7207ad57c2c36ab787e11d8",
+    "confidence_score": "HIGH",
+    "attribution_type": "UPSTREAM",
+    "counterfactual_replay": "PASS",
+    "target_file": "infra/helper.py",
+    "line_num": "N/A"
+  }
+]
