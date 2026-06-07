@@ -5,7 +5,7 @@ import json
 import logging
 import subprocess
 from dotenv import load_dotenv
-from src.utils import timezone_normalize, clamp_diff_content, download_log_from_url
+from src.utils import timezone_normalize, clamp_diff_content, download_log_from_url, update_yaml_report
 from src.workspace import WorkspaceManager
 from src.ecrcl_engine import execute_ecrcl_localization
 from src.agent import CognitiveAgent
@@ -57,7 +57,8 @@ class StandalonePipeline:
         output_results_dir = os.path.join(PROJECT_ROOT, "output_results")
         os.makedirs(output_results_dir, exist_ok=True)
 
-        for proj in projects:
+        # 🌟 采用 enumerate 迭代解析，从而安全捕获当前项目在 projects.yaml 中的物理 row_index
+        for row_index, proj in enumerate(projects):
             if not isinstance(proj, dict):
                 logger.warning(f"Skipping malformed entry: {proj}")
                 continue
@@ -104,6 +105,8 @@ class StandalonePipeline:
                 success = download_log_from_url(raw_log_path, local_log_path)
                 if not success:
                     logger.error(f"Skipping {project_name} due to log download failure.")
+                    # 🌟 加固保护：若日志下载失败，同步向 YAML 报表回填 Failure 状态
+                    update_yaml_report(self.config_yaml, row_index, "Failure")
                     continue
                 log_path = local_log_path
             else:
@@ -123,6 +126,8 @@ class StandalonePipeline:
 
             if ecrcl_result.get("status") == "error":
                 logger.error(f"ECRCL engine failed for {project_name}: {ecrcl_result['message']}")
+                # 🌟 加固保护：若底层计算引擎异常，同步向 YAML 报表回填 Failure 状态
+                update_yaml_report(self.config_yaml, row_index, "Failure")
                 continue
 
             # 提取图评分前三嫌疑 Commit
@@ -277,6 +282,24 @@ class StandalonePipeline:
                 "target_file": ecrcl_result["top_1_file"],
                 "line_num": ecrcl_result["line_num"]
             })
+
+            # 🌟 核心拦截回调：判定当前项目的最终物理校验是否通过
+            if verification_passed and final_suspect != "UNKNOWN":
+                # 根因定位成功：写入 Success 并回填 commit 和 workspace 信息
+                update_yaml_report(
+                    file_path=self.config_yaml,
+                    row_index=row_index,
+                    result="Success",
+                    commit=final_suspect,
+                    workspace=attribution_type
+                )
+            else:
+                # 根因定位失败/未通过反事实校验
+                update_yaml_report(
+                    file_path=self.config_yaml,
+                    row_index=row_index,
+                    result="Failure"
+                )
 
         # 写入全局汇总 JSON
         consolidated_json_path = os.path.join(output_results_dir, "consolidated_results.json")

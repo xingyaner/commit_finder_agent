@@ -1,0 +1,7 @@
+{
+  "root_cause_commit": "UNKNOWN",
+  "attribution_type": "UPSTREAM",
+  "counterfactual_replay": "FAIL",
+  "confidence": "LOW",
+  "summary": "根因定位失败，全部候选Commit反事实验证未通过，无法锁定故障提交。"
+}

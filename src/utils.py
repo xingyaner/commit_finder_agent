@@ -1,7 +1,9 @@
+import os
+import yaml
+import tempfile
 import sys
 import urllib
 import urllib.request
-import os
 import logging
 from datetime import datetime, timezone, timedelta
 
@@ -59,6 +61,7 @@ def timezone_normalize(error_date: str) -> int:
         logger.warning(f"Failed to normalize error_date '{error_date}': {e}. Falling back to now.")
         return int(datetime.now(timezone.utc).timestamp())
 
+
 def clamp_diff_content(diff_text: str) -> str:
     """
     Token 保护机制：
@@ -108,3 +111,80 @@ def clamp_diff_content(diff_text: str) -> str:
             final_diff = final_diff[:10000] + "\n... [Total Diff Truncated for Token safety] ..."
 
     return final_diff
+
+def update_yaml_report(
+    file_path: str,
+    row_index: int,
+    result: str,
+    commit: str = None,
+    workspace: str = None
+) -> dict:
+    """
+    更新独立根因定位系统中的 YAML 报表。
+    1. 标记处理状态为 state: 'yes' 并记录定位结果 (Success/Failure) 与日期。
+    2. 如果定位成功 (result == "Success")，自动将 root_cause_commit 和 root_cause_workspace
+       物理插入在 error_category 与 state 之间。
+    3. 通过临时文件原子替换(Atomic Swap) + allow_unicode 保证写入安全，杜绝乱码与数据损坏。
+    """
+    print(f"--- Tool: update_yaml_report called for file '{file_path}', index {row_index} ---")
+    try:
+        if not os.path.exists(file_path):
+            return {'status': 'error', 'message': f"YAML file not found at '{file_path}'."}
+
+        # 1. 安全读取原始 YAML 数据
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+
+        if row_index < 0 or row_index >= len(data):
+            return {'status': 'error', 'message': f"Invalid row index: {row_index}."}
+
+        old_item = data[row_index]
+        is_success = (result.lower() == "success")
+
+        # 2. 构建保序新对象 (Order-Preserving Key Manipulation)
+        updated_item = {}
+        has_fixed_state = 'fixed_state' in old_item
+
+        for k, v in old_item.items():
+            if k == 'fixed_state':
+                # 物理删除旧的 fixed_state 字段，并在该位置替换为新标记
+                updated_item['state'] = 'yes'
+                updated_item['fix_result'] = result
+                updated_item['fix_date'] = datetime.now().strftime('%Y-%m-%d')
+            else:
+                updated_item[k] = v
+
+            # 核心定位：当遇到 error_category 且定位成功时，在其后方立即插入定位数据
+            if k == 'error_category' and is_success:
+                updated_item['root_cause_commit'] = commit if commit else "UNKNOWN"
+                updated_item['root_cause_workspace'] = workspace if workspace else "UNKNOWN"
+
+        # 防御性补丁：若原始 YAML 中意外缺失 fixed_state 键，将其追加在末尾
+        if not has_fixed_state:
+            updated_item['state'] = 'yes'
+            updated_item['fix_result'] = result
+            updated_item['fix_date'] = datetime.now().strftime('%Y-%m-%d')
+
+        # 3. 覆盖原始列表对应的索引位置
+        data[row_index] = updated_item
+
+        # 4. 🔑 物理原子写入 (Atomic File Write & Swap)
+        dir_name = os.path.dirname(os.path.abspath(file_path))
+        fd, tmp_path = tempfile.mkstemp(dir=dir_name, prefix=".projects_yaml_tmp_", suffix=".yaml")
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as tmp_f:
+                # sort_keys=False 必须保持，以锁定我们构建的保序字典物理顺序
+                yaml.dump(data, tmp_f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            os.replace(tmp_path, file_path)  # 物理原子级覆盖，杜绝写盘中途中断导致原文件损坏
+        except Exception as swap_e:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise swap_e
+
+        message = f"Successfully updated project at index {row_index} in '{file_path}'."
+        print(message)
+        return {'status': 'success', 'message': message}
+    except Exception as e:
+        message = f"Failed to update YAML report cleanly: {e}"
+        print(f"--- ERROR: {message} ---")
+        return {'status': 'error', 'message': message}

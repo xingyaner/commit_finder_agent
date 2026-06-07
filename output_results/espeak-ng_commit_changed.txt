@@ -1,0 +1,6 @@
+{
+  "root_cause_commit": "96c1ca91808505026b4eef283124ca1d62b2f534",
+  "attribution_type": "UPSTREAM",
+  "counterfactual_replay": "PASS",
+  "confidence": "HIGH"
+}
