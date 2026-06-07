@@ -185,7 +185,9 @@
   architecture: x86_64
   base_image_digest: bdbe44209365fbbabc2c1a83e7a67cc69cc843caf641ffa1c53f357a284873c0
   error_category: RC9
-  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-06-07'
 - project: freerdp
   language: c
   error_time: '2025-09-26'

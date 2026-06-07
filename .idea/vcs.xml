@@ -4,15 +4,6 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/temp_workspaces/downstream/oss-fuzz" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/augeas" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/bind9" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/binutils" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/croaring" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/cryptography" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/espeak-ng" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/ffmpeg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/glslang" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/swift-nio" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/temp_workspaces/upstream/trafficserver" vcs="Git" />
   </component>
 </project>
