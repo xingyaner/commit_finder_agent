@@ -93,8 +93,8 @@ class CognitiveAgent:
         instruction = self.load_instruction(instruction_path)
 
         user_prompt = f"""
-We have completed the physical graph-based ECRCL analysis with three sequential attempts. 
-Here is the highly distilled context package:
+We have completed the physical graph-based ECRCL analysis with six sequential
+attempts. Here is the highly distilled context package:
 
 [FAILURE_LOG_CONTEXT]
 {context_data.get('failure_region_text')}
@@ -118,7 +118,10 @@ Code After: {context_data.get('after_line')}
 Status: {context_data.get('validation_status')}
 
 Analyze this context and write a complete report matching the requested schema exactly.
-CRITICAL RULE: If the SHA is 'UNKNOWN', you MUST explicitly mark that root cause localization failed ("根因定位失败") in your FINAL_ATTRIBUTION and CAUSAL_CHAIN, noting that all top 3 candidate commits failed counterfactual replay.
+CRITICAL RULE: If the SHA is 'UNKNOWN', you MUST explicitly mark that
+root cause localization failed ("根因定位失败") in your FINAL_ATTRIBUTION and
+CAUSAL_CHAIN, noting that all top 6 candidate commits failed counterfactual
+replay. 
 """
         try:
             response = completion(

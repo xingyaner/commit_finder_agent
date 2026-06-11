@@ -115,6 +115,41 @@ class WorkspaceManager:
         total_log = "".join(full_out)
         return proc.returncode, total_log
 
+        # 🌟 物理移入类内进行同级缩进，保障 self 指针通路顺畅
+
+    def _stash_restore_workspace(self, repo_path: str):
+        """临时保存现场，校验结束还原，全程不修改源码内容"""
+        subprocess.run(["git", "-C", repo_path, "stash", "--include=*"], capture_output=True)
+
+    def counterfactual_revert_downstream_commit(self, repo_path: str, target_commit: str,
+                                                project_name: str, engine: str, sanitizer: str,
+                                                architecture: str) -> bool:
+        """
+        下游commit反事实验证：revert目标commit → 编译校验 → 还原仓库
+        """
+        self._stash_restore_workspace(repo_path)
+        origin_ok = False
+        try:
+            # 撤销待验证下游commit
+            subprocess.run(["git", "-C", repo_path, "revert", "--no-edit", target_commit], capture_output=True,
+                           check=True)
+            # 编译校验
+            build_res = self.run_fuzz_build_and_validate(
+                project_name=project_name,
+                oss_fuzz_path=repo_path,
+                sanitizer=sanitizer,
+                engine=engine,
+                architecture=architecture,
+                mount_path=None
+            )
+            origin_ok = (build_res["status"] == "success")
+        except Exception as e:
+            logger.warning(f"Downstream revert verify failed {target_commit}:{str(e)}")
+        finally:
+            subprocess.run(["git", "-C", repo_path, "reset", "--hard", "HEAD"], capture_output=True)
+            subprocess.run(["git", "-C", repo_path, "stash", "pop"], capture_output=True)
+        return origin_ok
+
     # ========== 修正：类内同级缩进，首参数加self ==========
     def run_fuzz_build_and_validate(
             self,
@@ -246,8 +281,12 @@ class WorkspaceManager:
 
             # --- Phase 1: Physical Build ---
             build_cmd = ["python3", helper_path, "build_fuzzers"]
-            # 强制始终挂载 project_source_path
-            build_cmd.extend([project_name, mount_path])
+            build_cmd.append(project_name)
+
+            # 🌟 安全参数多态校验：仅当 mount_path 存在且有效时，才追加挂载路径，防止 Popen 抛出 TypeError
+            if mount_path:
+                build_cmd.append(mount_path)
+
             build_cmd.extend(["--sanitizer", sanitizer, "--engine", engine, "--architecture", architecture])
 
             build_start = time.time()

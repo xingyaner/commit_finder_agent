@@ -89,13 +89,11 @@ class StandalonePipeline:
         output_results_dir = os.path.join(PROJECT_ROOT, "output_results")
         os.makedirs(output_results_dir, exist_ok=True)
 
-        # 🌟 采用 enumerate 迭代解析，从而安全捕获当前项目在 projects.yaml 中的物理 row_index
         for row_index, proj in enumerate(projects):
             if not isinstance(proj, dict):
                 logger.warning(f"Skipping malformed entry: {proj}")
                 continue
 
-            # 动态属性映射器 (兼容多种命名协议)
             project_name = proj.get("project") or proj.get("project_name")
             oss_fuzz_sha = proj.get("oss-fuzz_sha") or proj.get("sha")
             raw_log_path = proj.get("fuzzing_build_error_log") or proj.get("original_log_path")
@@ -106,8 +104,6 @@ class StandalonePipeline:
                 logger.warning(f"Skipping entry missing project name key: {proj}")
                 continue
 
-            # 🌟 核心拦截 1：新增断点续跑拦截
-            # 若 state 或旧的 fixed_state 已被更新标记为 'yes'，表示历史定位分析完成，直接跳过
             state_flag = proj.get("state") or proj.get("fixed_state")
             if state_flag == "yes":
                 logger.info(f"Skipping project '{project_name}' (already processed with state: 'yes')")
@@ -117,31 +113,26 @@ class StandalonePipeline:
                 logger.warning(f"Skipping {project_name} due to missing sha or log path metadata.")
                 continue
 
-            # 提前构建局部工作空间管理器以初始化物理路径变量
             local_workspace = WorkspaceManager(base_dir=os.path.join(PROJECT_ROOT, "temp_workspaces"))
             oss_fuzz_path = local_workspace.get_downstream_path()
             project_source_path = local_workspace.get_upstream_path(project_name)
 
-            # 🌟 核心拦截 2：采用标准的 try...except...finally 闭环接管，彻底剔除冗余代码并提供守护
             try:
                 logger.info(f"\nProcessing project context: {project_name}")
                 local_agent = CognitiveAgent()
 
-                # 下载并对齐 Downstream 基础设施 (oss-fuzz)
                 local_workspace.clone_or_update_repo(
                     repo_url="https://github.com/google/oss-fuzz.git",
                     dest_path=oss_fuzz_path,
                     checkout_sha=oss_fuzz_sha
                 )
 
-                # 下载并对齐 Upstream 项目源码
                 local_workspace.clone_or_update_repo(
                     repo_url=software_repo_url,
                     dest_path=project_source_path,
                     checkout_sha=software_sha
                 )
 
-                # 动态处理远程日志下载与本地持久化
                 local_log_path = os.path.join(PROJECT_ROOT, "build_error_log", f"{project_name}_error.txt")
                 if raw_log_path.startswith(("http://", "https://")):
                     success = download_log_from_url(raw_log_path, local_log_path)
@@ -155,7 +146,6 @@ class StandalonePipeline:
                     if not os.path.isabs(log_path):
                         log_path = os.path.join(PROJECT_ROOT, log_path)
 
-                # 运行物理初筛与图建模计算 (ECRCL Phase 0 ~ 2.5)
                 ecrcl_result = execute_ecrcl_localization(
                     log_path=log_path,
                     project_name=project_name,
@@ -170,26 +160,30 @@ class StandalonePipeline:
                     update_yaml_report(self.config_yaml, row_index, "Failure")
                     continue
 
-                # 提取图评分前三嫌疑 Commit
                 sorted_scores = ecrcl_result["sorted_scores"]
-                suspect_pool = [score_info[0] for score_info in sorted_scores[:3]] if sorted_scores else []
+                suspect_pool = [score_info[0] for score_info in sorted_scores[:5]] if sorted_scores else []
 
-                # 🔑 三级顺延校验状态机
                 final_suspect = "UNKNOWN"
                 confidence = "LOW"
                 validation_status = "FAIL"
-                active_workspace = ecrcl_result["active_workspace"]
+
+                winning_workspace = "UNKNOWN"
+                winning_origin = "UNKNOWN"
                 verification_passed = False
 
-                for attempt_idx, suspect in enumerate(suspect_pool):
+                for attempt_idx, suspect_dict in enumerate(suspect_pool):
+                    suspect = suspect_dict["sha"]
+                    origin_type = suspect_dict["origin"]
+                    active_workspace = suspect_dict["workspace"]
+                    is_downstream_commit = (origin_type == "DOWNSTREAM")
+
                     logger.info(
-                        f"--- [Phase 3] Verification Attempt {attempt_idx + 1}/3: Testing suspect {suspect} ---")
+                        f"--- [Phase 3] Verification Attempt {attempt_idx + 1}/{len(suspect_pool)}: Testing suspect {suspect} ({origin_type}) ---")
                     try:
-                        if ecrcl_result["is_downstream"]:
-                            # ==========下游commit：走revert反事实逻辑==========
+                        if is_downstream_commit:
                             logger.info(f"Step3: Downstream commit, use revert counterfactual verify {suspect}")
                             revert_success = local_workspace.counterfactual_revert_downstream_commit(
-                                repo_path=ecrcl_result["oss_fuzz_path"],
+                                repo_path=active_workspace,
                                 target_commit=suspect,
                                 project_name=project_name,
                                 engine=proj["engine"],
@@ -199,13 +193,10 @@ class StandalonePipeline:
                             parent_passed = revert_success
                             suspect_failed = True
                         else:
-                            # ==========上游源码commit：保留原有父提交校验逻辑==========
                             logger.info(f"Step 3.1: Validating parent state ({suspect}~1)...")
-                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"],
-                                           capture_output=True)
+                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
                             subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"], capture_output=True)
-                            subprocess.run(["git", "-C", active_workspace, "checkout", f"{suspect}~1"],
-                                           capture_output=True)
+                            subprocess.run(["git", "-C", active_workspace, "checkout", f"{suspect}~1"], capture_output=True)
                             parent_passed = local_workspace.execute_docker_compile(
                                 project_name=project_name,
                                 upstream_mount_path=project_source_path,
@@ -213,10 +204,8 @@ class StandalonePipeline:
                                 sanitizer=proj["sanitizer"],
                                 architecture=proj["architecture"]
                             )
-                            # 4.2 校验嫌疑提交 (Expected FAIL)
                             logger.info(f"Step 3.2: Validating suspect state ({suspect})...")
-                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"],
-                                           capture_output=True)
+                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
                             subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"], capture_output=True)
                             subprocess.run(["git", "-C", active_workspace, "checkout", suspect], capture_output=True)
                             suspect_failed = not local_workspace.execute_docker_compile(
@@ -227,31 +216,31 @@ class StandalonePipeline:
                                 architecture=proj["architecture"]
                             )
 
-                        # 4.3 综合决策
                         if parent_passed and suspect_failed:
                             validation_status = "PASS"
                             confidence = "HIGH"
                             final_suspect = suspect
+                            winning_workspace = active_workspace
+                            winning_origin = origin_type
                             verification_passed = True
                             logger.info(f"Causal Counterfactual validation PASSED on Attempt {attempt_idx + 1}!")
-                            break  # 验证通过，立即跳出重试
+                            break
                         else:
                             logger.warning(
                                 f"Attempt {attempt_idx + 1} failed. Suspect {suspect} did not satisfy verification criteria.")
                     except Exception as val_err:
                         logger.error(f"Replay validation hit unexpected error on {suspect}: {val_err}")
                     finally:
-                        # 安全复原
                         subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
                         subprocess.run(["git", "-C", active_workspace, "clean", "-fxd"], capture_output=True)
 
                 if not verification_passed:
-                    logger.error(f"All 3 localization attempts failed for project {project_name}. Tagging as 'Failed'.")
+                    logger.error(
+                        f"All {len(suspect_pool)} localization attempts failed for project {project_name}. Tagging as 'Failed'.")
                     final_suspect = "UNKNOWN"
                     confidence = "LOW"
                     validation_status = "FAIL"
 
-                # 5. 抓取嫌疑 Diff 及具体变更信息
                 diff_text = ""
                 target_author = "N/A"
                 target_date = "N/A"
@@ -261,30 +250,26 @@ class StandalonePipeline:
 
                 if final_suspect != "UNKNOWN":
                     try:
-                        show_meta = ["git", "-C", active_workspace, "show", "--pretty=format:%an|%ad|%s", "-s",
-                                     final_suspect]
+                        show_meta = ["git", "-C", winning_workspace, "show", "--pretty=format:%an|%ad|%s", "-s", final_suspect]
                         meta_res = subprocess.run(show_meta, capture_output=True, text=True, check=True)
                         target_author, target_date, target_title = meta_res.stdout.strip().split('|', 2)
                     except Exception:
                         pass
 
                     try:
-                        diff_res = subprocess.run(["git", "-C", active_workspace, "show", "-U3", final_suspect],
-                                                  capture_output=True, text=True, check=True)
+                        diff_res = subprocess.run(["git", "-C", winning_workspace, "show", "-U3", final_suspect], capture_output=True, text=True, check=True)
                         diff_text = clamp_diff_content(diff_res.stdout)
 
-                        # 提取变更行快照 (Before/After)
-                        removed_lines = [l[1:].strip() for l in diff_res.stdout.splitlines() if
-                                         l.startswith('-') and not l.startswith('---')]
-                        added_lines = [l[1:].strip() for l in diff_res.stdout.splitlines() if
-                                       l.startswith('+') and not l.startswith('+++')]
+                        removed_lines = [l[1:].strip() for l in diff_res.stdout.splitlines() if l.startswith('-') and not l.startswith('---')]
+                        added_lines = [l[1:].strip() for l in diff_res.stdout.splitlines() if l.startswith('+') and not l.startswith('+++')]
                         if removed_lines: before_line = removed_lines[0]
                         if added_lines: after_line = added_lines[0]
                     except Exception:
                         diff_text = "Failed to extract commit diff context."
 
-                # 6. 唤醒认知仲裁 Agent 整合生成因果分析 (Phase 4)
-                attribution_type = "DOWNSTREAM" if ecrcl_result["is_downstream"] else "UPSTREAM"
+                # 🌟 修复：仅保留这套高精度、带 winning_origin 动态映射的认知处理与工件归档流程，彻底干掉冗余的重复代码
+                attribution_type = winning_origin if final_suspect != "UNKNOWN" else (
+                    "DOWNSTREAM" if ecrcl_result["is_downstream"] else "UPSTREAM")
                 arbitration_payload = {
                     "failure_region_text": ecrcl_result["failure_region_text"],
                     "final_suspect": final_suspect,
@@ -307,7 +292,6 @@ class StandalonePipeline:
                     instruction_path=os.path.join(PROJECT_ROOT, "instructions", "commit_finder_instruction.txt")
                 )
 
-                # 7. 定位工件生成及物理归档
                 output_file_name = os.path.join(output_results_dir, f"{project_name}_commit_changed.txt")
                 with open(output_file_name, 'w', encoding='utf-8') as out_f:
                     out_f.write(report_body.strip())
@@ -323,7 +307,6 @@ class StandalonePipeline:
                     "line_num": ecrcl_result["line_num"]
                 })
 
-                # 🌟 核心拦截回调：判定当前项目的最终物理校验是否通过并更新 YAML 状态
                 if verification_passed and final_suspect != "UNKNOWN":
                     update_yaml_report(
                         file_path=self.config_yaml,
@@ -340,15 +323,12 @@ class StandalonePipeline:
                     )
 
             except Exception as crash_err:
-                # 🌟 守护保护：捕获物理运行时抛出的未受控意外崩溃，回填 Failure 保护 Pipeline 不中断
                 logger.error(f"CRITICAL: StandalonePipeline execution crashed for {project_name}: {crash_err}")
                 update_yaml_report(self.config_yaml, row_index, "Failure")
 
             finally:
-                # 🌟 物理还原清理：项目处理结束（无论通过、失败、跳过、还是中途异常崩溃），无条件触发物理清理
                 cleanup_environment(project_name, project_source_path, oss_fuzz_path)
 
-        # 写入全局汇总 JSON
         consolidated_json_path = os.path.join(output_results_dir, "consolidated_results.json")
         with open(consolidated_json_path, 'w', encoding='utf-8') as j_f:
             json.dump(consolidated_results, j_f, indent=2, ensure_ascii=False)
