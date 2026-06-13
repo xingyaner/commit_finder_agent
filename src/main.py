@@ -161,7 +161,7 @@ class StandalonePipeline:
                     continue
 
                 sorted_scores = ecrcl_result["sorted_scores"]
-                suspect_pool = [score_info[0] for score_info in sorted_scores[:5]] if sorted_scores else []
+                suspect_pool = [score_info[0] for score_info in sorted_scores[:10]] if sorted_scores else []
 
                 final_suspect = "UNKNOWN"
                 confidence = "LOW"

@@ -93,36 +93,36 @@ class CognitiveAgent:
         instruction = self.load_instruction(instruction_path)
 
         user_prompt = f"""
-We have completed the physical graph-based ECRCL analysis with six sequential
-attempts. Here is the highly distilled context package:
+        We have completed the physical graph-based ECRCL analysis with ten sequential
+        attempts. Here is the highly distilled context package:
 
-[FAILURE_LOG_CONTEXT]
-{context_data.get('failure_region_text')}
+        [FAILURE_LOG_CONTEXT]
+        {context_data.get('failure_region_text')}
 
-[IDENTIFIED_ROOT_COMMIT]
-SHA: {context_data.get('final_suspect')}
-Author: {context_data.get('target_author')}
-Date: {context_data.get('target_date')}
-Title: {context_data.get('target_title')}
-Confidence: {context_data.get('confidence')}
-Workspace: {context_data.get('attribution_type')}
-Target File: {context_data.get('top_1_file')}
-Target Line: {context_data.get('line_num')}
-Code Before: {context_data.get('before_line')}
-Code After: {context_data.get('after_line')}
+        [IDENTIFIED_ROOT_COMMIT]
+        SHA: {context_data.get('final_suspect')}
+        Author: {context_data.get('target_author')}
+        Date: {context_data.get('target_date')}
+        Title: {context_data.get('target_title')}
+        Confidence: {context_data.get('confidence')}
+        Workspace: {context_data.get('attribution_type')}
+        Target File: {context_data.get('top_1_file')}
+        Target Line: {context_data.get('line_num')}
+        Code Before: {context_data.get('before_line')}
+        Code After: {context_data.get('after_line')}
 
-[DIFF_CONTEXT]
-{context_data.get('diff_text')}
+        [DIFF_CONTEXT]
+        {context_data.get('diff_text')}
 
-[COUNTERFACTUAL_REPLAY_RESULT]
-Status: {context_data.get('validation_status')}
+        [COUNTERFACTUAL_REPLAY_RESULT]
+        Status: {context_data.get('validation_status')}
 
-Analyze this context and write a complete report matching the requested schema exactly.
-CRITICAL RULE: If the SHA is 'UNKNOWN', you MUST explicitly mark that
-root cause localization failed ("根因定位失败") in your FINAL_ATTRIBUTION and
-CAUSAL_CHAIN, noting that all top 6 candidate commits failed counterfactual
-replay. 
-"""
+        Analyze this context and write a complete report matching the requested schema exactly.
+        CRITICAL RULE: If the SHA is 'UNKNOWN', you MUST explicitly mark that
+        root cause localization failed ("根因定位失败") in your FINAL_ATTRIBUTION and
+        CAUSAL_CHAIN, noting that all top 10 candidate commits failed counterfactual
+        replay. 
+        """
         try:
             response = completion(
                 model=self.model_name,
