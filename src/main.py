@@ -4,6 +4,7 @@ import yaml
 import json
 import logging
 import subprocess
+from datetime import datetime
 from dotenv import load_dotenv
 # 🌟 引入 update_yaml_report 用于回填
 from src.utils import timezone_normalize, clamp_diff_content, download_log_from_url, update_yaml_report
@@ -23,6 +24,108 @@ logger = logging.getLogger("StandaloneCommitFinder")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
+
+class TeeStream:
+    def __init__(self, primary, secondary):
+        self.primary = primary
+        self.secondary = secondary
+
+    def write(self, data):
+        self.primary.write(data)
+        self.secondary.write(data)
+
+    def flush(self):
+        self.primary.flush()
+        self.secondary.flush()
+
+    def isatty(self):
+        return self.primary.isatty()
+
+
+def start_project_log(project_name: str) -> dict:
+    safe_project = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in project_name)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_dir = os.path.join(PROJECT_ROOT, "project_run_logs")
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, f"{safe_project}_{timestamp}_log.txt")
+    log_file = open(log_path, "a", encoding="utf-8", buffering=1)
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] (%(name)s) %(message)s"))
+    logging.getLogger().addHandler(file_handler)
+
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = TeeStream(original_stdout, log_file)
+    sys.stderr = TeeStream(original_stderr, log_file)
+
+    logger.info(f"Project run log started: {log_path}")
+    return {
+        "path": log_path,
+        "file": log_file,
+        "handler": file_handler,
+        "stdout": original_stdout,
+        "stderr": original_stderr
+    }
+
+
+def stop_project_log(project_log: dict):
+    if not project_log:
+        return
+    logger.info(f"Project run log finished: {project_log['path']}")
+    sys.stdout = project_log["stdout"]
+    sys.stderr = project_log["stderr"]
+    root_logger = logging.getLogger()
+    root_logger.removeHandler(project_log["handler"])
+    project_log["handler"].close()
+    project_log["file"].close()
+
+
+def build_commit_details(candidate_commits: list, selected_shas: list) -> list:
+    """
+    Fetch detailed commit context only for the LLM-selected short list.
+    """
+    candidate_by_sha = {c.get("sha"): c for c in candidate_commits}
+    detailed = []
+    for sha in selected_shas:
+        base = candidate_by_sha.get(sha)
+        if not base:
+            continue
+        workspace = base.get("workspace")
+        detail = {
+            "sha": sha,
+            "origin": base.get("origin"),
+            "date": base.get("date"),
+            "author": base.get("author"),
+            "title": base.get("message"),
+            "changed_files": base.get("changed_files", []),
+            "diff": "",
+            "stat": ""
+        }
+        try:
+            stat_res = subprocess.run(
+                ["git", "-C", workspace, "show", "--stat", "--summary", "--format=fuller", sha],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            detail["stat"] = clamp_diff_content(stat_res.stdout)
+        except Exception as e:
+            logger.warning(f"Failed to extract stat for candidate {sha}: {e}")
+        try:
+            diff_res = subprocess.run(
+                ["git", "-C", workspace, "show", "-U3", "--format=fuller", sha],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            detail["diff"] = clamp_diff_content(diff_res.stdout)
+        except Exception as e:
+            logger.warning(f"Failed to extract diff for candidate {sha}: {e}")
+        detailed.append(detail)
+    return detailed
 
 
 # 🌟 新增：独立定位环境清理工具函数
@@ -116,6 +219,7 @@ class StandalonePipeline:
             local_workspace = WorkspaceManager(base_dir=os.path.join(PROJECT_ROOT, "temp_workspaces"))
             oss_fuzz_path = local_workspace.get_downstream_path()
             project_source_path = local_workspace.get_upstream_path(project_name)
+            project_log = start_project_log(project_name)
 
             try:
                 logger.info(f"\nProcessing project context: {project_name}")
@@ -160,8 +264,45 @@ class StandalonePipeline:
                     update_yaml_report(self.config_yaml, row_index, "Failure")
                     continue
 
-                sorted_scores = ecrcl_result["sorted_scores"]
-                suspect_pool = [score_info[0] for score_info in sorted_scores[:10]] if sorted_scores else []
+                llm_attribution = local_agent.infer_attribution_workspace(
+                    project_name=project_name,
+                    failure_region_text=ecrcl_result["failure_region_text"],
+                    top_1_file=ecrcl_result["top_1_file"]
+                )
+                logger.info(
+                    f"LLM attribution decision: {llm_attribution['attribution_type']} "
+                    f"({llm_attribution['confidence']}) - {llm_attribution['reason']}"
+                )
+
+                candidate_commits = ecrcl_result.get("candidate_commits", [])
+                if not candidate_commits:
+                    logger.error(f"No candidate commits collected for project {project_name}.")
+                    update_yaml_report(self.config_yaml, row_index, "Failure")
+                    continue
+
+                initial_selected_shas = local_agent.select_initial_suspects(
+                    project_name=project_name,
+                    failure_region_text=ecrcl_result["failure_region_text"],
+                    candidate_commits=candidate_commits,
+                    max_count=4
+                )
+                logger.info(f"LLM initial suspect set: {initial_selected_shas}")
+
+                detailed_candidates = build_commit_details(candidate_commits, initial_selected_shas)
+                logger.info(
+                    "Detailed candidate set built for final LLM selection: "
+                    f"{[c.get('sha') for c in detailed_candidates]}"
+                )
+                final_selected_shas = local_agent.select_final_suspects(
+                    project_name=project_name,
+                    failure_region_text=ecrcl_result["failure_region_text"],
+                    detailed_candidates=detailed_candidates,
+                    max_count=2
+                )
+                logger.info(f"LLM final replay set: {final_selected_shas}")
+
+                candidate_by_sha = {c.get("sha"): c for c in candidate_commits}
+                suspect_pool = [candidate_by_sha[sha] for sha in final_selected_shas if sha in candidate_by_sha]
 
                 final_suspect = "UNKNOWN"
                 confidence = "LOW"
@@ -170,6 +311,9 @@ class StandalonePipeline:
                 winning_workspace = "UNKNOWN"
                 winning_origin = "UNKNOWN"
                 verification_passed = False
+
+                if not suspect_pool:
+                    logger.error(f"LLM did not select any valid candidate commits for project {project_name}.")
 
                 for attempt_idx, suspect_dict in enumerate(suspect_pool):
                     suspect = suspect_dict["sha"]
@@ -180,41 +324,43 @@ class StandalonePipeline:
                     logger.info(
                         f"--- [Phase 3] Verification Attempt {attempt_idx + 1}/{len(suspect_pool)}: Testing suspect {suspect} ({origin_type}) ---")
                     try:
-                        if is_downstream_commit:
-                            logger.info(f"Step3: Downstream commit, use revert counterfactual verify {suspect}")
-                            revert_success = local_workspace.counterfactual_revert_downstream_commit(
-                                repo_path=active_workspace,
-                                target_commit=suspect,
-                                project_name=project_name,
-                                engine=proj["engine"],
-                                sanitizer=proj["sanitizer"],
-                                architecture=proj["architecture"]
-                            )
-                            parent_passed = revert_success
-                            suspect_failed = True
-                        else:
-                            logger.info(f"Step 3.1: Validating parent state ({suspect}~1)...")
-                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
-                            subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"], capture_output=True)
-                            subprocess.run(["git", "-C", active_workspace, "checkout", f"{suspect}~1"], capture_output=True)
-                            parent_passed = local_workspace.execute_docker_compile(
-                                project_name=project_name,
-                                upstream_mount_path=project_source_path,
-                                engine=proj["engine"],
-                                sanitizer=proj["sanitizer"],
-                                architecture=proj["architecture"]
-                            )
-                            logger.info(f"Step 3.2: Validating suspect state ({suspect})...")
-                            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
-                            subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"], capture_output=True)
-                            subprocess.run(["git", "-C", active_workspace, "checkout", suspect], capture_output=True)
-                            suspect_failed = not local_workspace.execute_docker_compile(
-                                project_name=project_name,
-                                upstream_mount_path=project_source_path,
-                                engine=proj["engine"],
-                                sanitizer=proj["sanitizer"],
-                                architecture=proj["architecture"]
-                            )
+                        # Both origins use the same causal test:
+                        # parent A must build, and candidate B must fail.
+                        # The only difference is whether the fixed upstream source
+                        # is mounted while testing the OSS-Fuzz repository.
+                        mount_path = None if is_downstream_commit else project_source_path
+
+                        logger.info(f"Step 3.1: Validating father state ({suspect}^)...")
+                        subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"],
+                                       capture_output=True, check=True)
+                        subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"],
+                                       capture_output=True, check=True)
+                        subprocess.run(["git", "-C", active_workspace, "checkout", "--detach", f"{suspect}^"],
+                                       capture_output=True, check=True)
+                        parent_passed = local_workspace.execute_docker_compile(
+                            project_name=project_name,
+                            upstream_mount_path=mount_path,
+                            engine=proj["engine"],
+                            sanitizer=proj["sanitizer"],
+                            architecture=proj["architecture"],
+                            environment_lock=proj
+                        )
+
+                        logger.info(f"Step 3.2: Validating son state ({suspect})...")
+                        subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"],
+                                       capture_output=True, check=True)
+                        subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"],
+                                       capture_output=True, check=True)
+                        subprocess.run(["git", "-C", active_workspace, "checkout", "--detach", suspect],
+                                       capture_output=True, check=True)
+                        suspect_failed = not local_workspace.execute_docker_compile(
+                            project_name=project_name,
+                            upstream_mount_path=mount_path,
+                            engine=proj["engine"],
+                            sanitizer=proj["sanitizer"],
+                            architecture=proj["architecture"],
+                            environment_lock=proj
+                        )
 
                         if parent_passed and suspect_failed:
                             validation_status = "PASS"
@@ -268,8 +414,7 @@ class StandalonePipeline:
                         diff_text = "Failed to extract commit diff context."
 
                 # 🌟 修复：仅保留这套高精度、带 winning_origin 动态映射的认知处理与工件归档流程，彻底干掉冗余的重复代码
-                attribution_type = winning_origin if final_suspect != "UNKNOWN" else (
-                    "DOWNSTREAM" if ecrcl_result["is_downstream"] else "UPSTREAM")
+                attribution_type = winning_origin if final_suspect != "UNKNOWN" else llm_attribution["attribution_type"]
                 arbitration_payload = {
                     "failure_region_text": ecrcl_result["failure_region_text"],
                     "final_suspect": final_suspect,
@@ -328,6 +473,7 @@ class StandalonePipeline:
 
             finally:
                 cleanup_environment(project_name, project_source_path, oss_fuzz_path)
+                stop_project_log(project_log)
 
         consolidated_json_path = os.path.join(output_results_dir, "consolidated_results.json")
         with open(consolidated_json_path, 'w', encoding='utf-8') as j_f:

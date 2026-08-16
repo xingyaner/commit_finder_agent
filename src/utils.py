@@ -121,7 +121,7 @@ def update_yaml_report(
 ) -> dict:
     """
     更新独立根因定位系统中的 YAML 报表。
-    1. 标记处理状态为 state: 'yes' 并记录定位结果 (Success/Failure) 与日期。
+    1. 保留 fixed_state 原始字段，追加/覆盖 state: 'yes' 并记录定位结果与日期。
     2. 如果定位成功 (result == "Success")，自动将 root_cause_commit 和 root_cause_workspace
        物理插入在 error_category 与 state 之间。
     3. 通过临时文件原子替换(Atomic Swap) + allow_unicode 保证写入安全，杜绝乱码与数据损坏。
@@ -144,13 +144,21 @@ def update_yaml_report(
         # 2. 构建保序新对象 (Order-Preserving Key Manipulation)
         updated_item = {}
         has_fixed_state = 'fixed_state' in old_item
+        runtime_status_written = False
 
         for k, v in old_item.items():
             if k == 'fixed_state':
-                # 物理删除旧的 fixed_state 字段，并在该位置替换为新标记
+                updated_item[k] = v
                 updated_item['state'] = 'yes'
                 updated_item['fix_result'] = result
                 updated_item['fix_date'] = datetime.now().strftime('%Y-%m-%d')
+                runtime_status_written = True
+            elif k in {'state', 'fix_result', 'fix_date'}:
+                if not runtime_status_written:
+                    updated_item['state'] = 'yes'
+                    updated_item['fix_result'] = result
+                    updated_item['fix_date'] = datetime.now().strftime('%Y-%m-%d')
+                    runtime_status_written = True
             else:
                 updated_item[k] = v
 
@@ -159,8 +167,8 @@ def update_yaml_report(
                 updated_item['root_cause_commit'] = commit if commit else "UNKNOWN"
                 updated_item['root_cause_workspace'] = workspace if workspace else "UNKNOWN"
 
-        # 防御性补丁：若原始 YAML 中意外缺失 fixed_state 键，将其追加在末尾
-        if not has_fixed_state:
+        # 防御性补丁：若原始 YAML 中意外缺失 fixed_state/state 键，将运行状态追加在末尾
+        if not has_fixed_state and not runtime_status_written:
             updated_item['state'] = 'yes'
             updated_item['fix_result'] = result
             updated_item['fix_date'] = datetime.now().strftime('%Y-%m-%d')

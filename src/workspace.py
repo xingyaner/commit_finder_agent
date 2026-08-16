@@ -5,43 +5,10 @@ import logging
 import sys
 import time
 import signal
+import re
 from typing import Optional
 
 logger = logging.getLogger("WorkspaceManager")
-
-def _stash_restore_workspace(self, repo_path: str):
-    """临时保存现场，校验结束还原，全程不修改源码内容"""
-    subprocess.run(["git", "-C", repo_path, "stash", "--include=*"], capture_output=True)
-def counterfactual_revert_downstream_commit(self, repo_path: str, target_commit: str,
-                                           project_name: str, engine: str, sanitizer: str, architecture: str) -> bool:
-    """
-    下游commit反事实验证：revert目标commit → 编译校验 → 还原仓库
-    约束：仅Git版本操作，无任何文件原地修改、补丁写入
-    return True:撤销commit后编译通过(原commit是根因)；False:撤销仍报错(非根因)
-    """
-    # 1.保存当前仓库现场
-    self._stash_restore_workspace(repo_path)
-    origin_ok = False
-    try:
-        # 撤销待验证下游commit
-        subprocess.run(["git", "-C", repo_path, "revert", "--no-edit", target_commit], capture_output=True, check=True)
-        # 编译校验：oss-fuzz为下游，mount_path=None，只校验下游本身构建
-        build_res = self.run_fuzz_build_and_validate(
-            project_name=project_name,
-            oss_fuzz_path=repo_path,
-            sanitizer=sanitizer,
-            engine=engine,
-            architecture=architecture,
-            mount_path=None
-        )
-        origin_ok = (build_res["status"] == "success")
-    except Exception as e:
-        logger.warning(f"Downstream revert verify failed {target_commit}:{str(e)}")
-    finally:
-        # 强制恢复原始仓库状态
-        subprocess.run(["git", "-C", repo_path, "reset", "--hard", "HEAD"], capture_output=True)
-        subprocess.run(["git", "-C", repo_path, "stash", "pop"], capture_output=True)
-    return origin_ok
 
 def _auto_discover_project_symbols_from_content(nm_stdout: str, project_name: str) -> bool:
     """Helper to evaluate static linkage of project logic from symbol table."""
@@ -82,9 +49,110 @@ class WorkspaceManager:
 
         if checkout_sha:
             logger.info(f"Checking out to SHA: {checkout_sha}")
-            subprocess.run(["git", "-C", dest_path, "reset", "--hard"], capture_output=True)
-            subprocess.run(["git", "-C", dest_path, "checkout", checkout_sha], capture_output=True)
-            subprocess.run(["git", "-C", dest_path, "clean", "-fxd"], capture_output=True)
+            subprocess.run(["git", "-C", dest_path, "reset", "--hard"], capture_output=True, check=True)
+            subprocess.run(["git", "-C", dest_path, "clean", "-fxd"], capture_output=True, check=True)
+            subprocess.run(["git", "-C", dest_path, "checkout", "--detach", checkout_sha],
+                           capture_output=True, check=True)
+            actual_sha = subprocess.run(
+                ["git", "-C", dest_path, "rev-parse", "HEAD"],
+                capture_output=True, text=True, check=True
+            ).stdout.strip()
+            if actual_sha != checkout_sha:
+                raise RuntimeError(
+                    f"Repository lock failed: requested {checkout_sha}, got {actual_sha} at {dest_path}"
+                )
+
+    @staticmethod
+    def _dependency_lock_map(environment_lock: Optional[dict]) -> dict:
+        """Accept both the concise mapping and the list form in projects.yaml."""
+        if not environment_lock:
+            return {}
+        values = environment_lock.get("dependency_shas", {})
+        if isinstance(values, dict):
+            return {str(repo).rstrip("/"): str(sha) for repo, sha in values.items()}
+        if isinstance(values, list):
+            result = {}
+            for item in values:
+                if isinstance(item, dict) and item.get("repo") and item.get("sha"):
+                    result[str(item["repo"]).rstrip("/")] = str(item["sha"])
+            return result
+        return {}
+
+    def _lock_dockerfile(self, oss_fuzz_path: str, project_name: str,
+                         environment_lock: Optional[dict]) -> Optional[tuple]:
+        """Temporarily pin Docker FROM and git-cloned dependency revisions."""
+        dockerfile = os.path.join(oss_fuzz_path, "projects", project_name, "Dockerfile")
+        if not os.path.isfile(dockerfile):
+            raise FileNotFoundError(f"Project Dockerfile not found: {dockerfile}")
+
+        with open(dockerfile, "r", encoding="utf-8") as handle:
+            original = handle.read()
+        locked = original
+        environment_lock = environment_lock or {}
+
+        digest = str(environment_lock.get("base_image_digest", "")).strip()
+        if digest:
+            if digest.startswith("sha256:"):
+                digest = digest[7:]
+            if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+                raise ValueError(f"Invalid base_image_digest for {project_name}: {digest}")
+
+            def pin_from(match):
+                image = match.group(1)
+                suffix = match.group(2) or ""
+                image_name = image.split("@", 1)[0]
+                return f"FROM {image_name}@sha256:{digest}{suffix}"
+
+            locked, count = re.subn(r"(?m)^FROM\s+(\S+)(.*)$", pin_from, locked)
+            if count == 0:
+                raise ValueError(f"No FROM instruction found in {dockerfile}")
+        else:
+            logger.warning("No base_image_digest configured for %s; Docker base image is not pinned", project_name)
+
+        for repo, sha in self._dependency_lock_map(environment_lock).items():
+            if not re.fullmatch(r"[0-9a-fA-F]{7,64}", sha):
+                raise ValueError(f"Invalid dependency SHA for {repo}: {sha}")
+            escaped_repo = re.escape(repo)
+            clone_pattern = re.compile(
+                rf"git clone(?P<options>(?:[ \t]+--[\w-]+(?:[ \t]+[^\s\\&|;]+)?)*)[ \t]+"
+                rf"{escaped_repo}(?:\.git)?(?:[ \t]+(?P<dest>[\w./-]+))?"
+            )
+
+            def pin_clone(match):
+                destination = match.group("dest") or repo.rsplit("/", 1)[-1].removesuffix(".git")
+                return (
+                    f"git clone{match.group('options')} {repo} {destination} && "
+                    f"(cd {destination} && git checkout {sha})"
+                )
+
+            locked, count = clone_pattern.subn(pin_clone, locked)
+            if count == 0:
+                raise ValueError(f"Configured dependency {repo} not found in {dockerfile}")
+
+        if locked != original:
+            with open(dockerfile, "w", encoding="utf-8") as handle:
+                handle.write(locked)
+            logger.info("Applied temporary Docker environment lock: %s", dockerfile)
+        return dockerfile, original
+
+    @staticmethod
+    def _restore_dockerfile(lock_state: Optional[tuple]):
+        if not lock_state:
+            return
+        dockerfile, original = lock_state
+        with open(dockerfile, "w", encoding="utf-8") as handle:
+            handle.write(original)
+
+    def run_fuzz_build_and_validate(self, *args, environment_lock: Optional[dict] = None, **kwargs) -> dict:
+        """Run one build with a temporary, deterministic Dockerfile lock."""
+        oss_fuzz_path = kwargs.get("oss_fuzz_path") or (args[1] if len(args) > 1 else None)
+        project_name = kwargs.get("project_name") or (args[0] if args else None)
+        lock_state = self._lock_dockerfile(oss_fuzz_path, project_name, environment_lock)
+        try:
+            return self._run_fuzz_build_and_validate_unlocked(*args, **kwargs)
+        finally:
+            self._restore_dockerfile(lock_state)
+            logger.info("Restored Dockerfile after environment-locked build: %s", lock_state[0])
 
     def _run_cmd_realtime_print(self, cmd: list, cwd: str, timeout: int):
         """子进程实时逐行输出控制台，汇总std行输出控制台，汇总stdout/stderr用于后续判断"""
@@ -123,42 +191,52 @@ class WorkspaceManager:
 
     def counterfactual_revert_downstream_commit(self, repo_path: str, target_commit: str,
                                                 project_name: str, engine: str, sanitizer: str,
-                                                architecture: str) -> bool:
+                                                architecture: str,
+                                                environment_lock: Optional[dict] = None) -> bool:
         """
-        下游commit反事实验证：revert目标commit → 编译校验 → 还原仓库
+        兼容旧调用名，但统一执行 father/son 反事实验证：
+        target_commit^ 构建成功，target_commit 构建失败，才返回 True。
         """
-        self._stash_restore_workspace(repo_path)
-        origin_ok = False
         try:
-            # 撤销待验证下游commit
-            subprocess.run(["git", "-C", repo_path, "revert", "--no-edit", target_commit], capture_output=True,
-                           check=True)
-            # 编译校验
-            build_res = self.run_fuzz_build_and_validate(
-                project_name=project_name,
-                oss_fuzz_path=repo_path,
-                sanitizer=sanitizer,
-                engine=engine,
-                architecture=architecture,
-                mount_path=None
-            )
-            origin_ok = (build_res["status"] == "success")
+            for commit in (f"{target_commit}^", target_commit):
+                subprocess.run(["git", "-C", repo_path, "reset", "--hard", "HEAD"],
+                               capture_output=True, check=True)
+                subprocess.run(["git", "-C", repo_path, "clean", "-ffdx"],
+                               capture_output=True, check=True)
+                subprocess.run(["git", "-C", repo_path, "checkout", "--detach", commit],
+                               capture_output=True, check=True)
+                build_res = self.run_fuzz_build_and_validate(
+                    project_name=project_name,
+                    oss_fuzz_path=repo_path,
+                    sanitizer=sanitizer,
+                    engine=engine,
+                    architecture=architecture,
+                    mount_path=None,
+                    environment_lock=environment_lock
+                )
+                if commit == f"{target_commit}^":
+                    parent_passed = build_res["status"] == "success"
+                else:
+                    suspect_failed = build_res["status"] != "success"
+            return parent_passed and suspect_failed
         except Exception as e:
-            logger.warning(f"Downstream revert verify failed {target_commit}:{str(e)}")
+            logger.warning(f"Father/son verify failed {target_commit}:{str(e)}")
+            return False
         finally:
+            # Restore the original candidate checkout, never a generated revert commit.
             subprocess.run(["git", "-C", repo_path, "reset", "--hard", "HEAD"], capture_output=True)
-            subprocess.run(["git", "-C", repo_path, "stash", "pop"], capture_output=True)
-        return origin_ok
+            subprocess.run(["git", "-C", repo_path, "clean", "-ffdx"], capture_output=True)
 
     # ========== 修正：类内同级缩进，首参数加self ==========
-    def run_fuzz_build_and_validate(
+    def _run_fuzz_build_and_validate_unlocked(
             self,
             project_name: str,
             oss_fuzz_path: str,
             sanitizer: str,
             engine: str,
             architecture: str,
-            mount_path: Optional[str] = None
+            mount_path: Optional[str] = None,
+            environment_lock: Optional[dict] = None
     ) -> dict:
         """
         Build and validate fuzzers using official OSS-Fuzz infrastructure.
@@ -559,7 +637,8 @@ class WorkspaceManager:
 
 
     def execute_docker_compile(self, project_name: str, upstream_mount_path: str,
-                               engine: str, sanitizer: str, architecture: str) -> bool:
+                               engine: str, sanitizer: str, architecture: str,
+                               environment_lock: Optional[dict] = None) -> bool:
         """
         [Phase 3 物理校验核]
         基于1+2+6校验规则：step1/2/6全pass才返回True(构建成功)，其余全部False(构建失败)
@@ -575,7 +654,8 @@ class WorkspaceManager:
             sanitizer=sanitizer,
             engine=engine,
             architecture=architecture,
-            mount_path=upstream_mount_path
+            mount_path=upstream_mount_path,
+            environment_lock=environment_lock
         )
         if validate_ret["status"] == "success":
             logger.info(f"Physical build validation SUCCESS for project {project_name} (1+2+6 all pass)")
