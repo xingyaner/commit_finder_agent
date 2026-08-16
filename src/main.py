@@ -257,7 +257,9 @@ class StandalonePipeline:
                 existing_root_origin in {"UPSTREAM", "DOWNSTREAM"}
             )
             state_flag = proj.get("state") or proj.get("fixed_state")
-            if state_flag == "yes" and not has_existing_root:
+            # state: yes is the durable processed marker. Existing root-cause
+            # metadata is revalidated only while the row is still unprocessed.
+            if state_flag == "yes":
                 logger.info(f"Skipping project '{project_name}' (already processed with state: 'yes')")
                 continue
 
