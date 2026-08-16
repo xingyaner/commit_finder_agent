@@ -196,3 +196,37 @@ def update_yaml_report(
         message = f"Failed to update YAML report cleanly: {e}"
         print(f"--- ERROR: {message} ---")
         return {'status': 'error', 'message': message}
+
+
+def clear_root_cause_report(file_path: str, row_index: int) -> dict:
+    """Remove a stale root-cause pair and reopen the row for normal localization."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        if row_index < 0 or row_index >= len(data):
+            return {'status': 'error', 'message': f'Invalid row index: {row_index}.'}
+
+        item = dict(data[row_index])
+        item.pop('root_cause_commit', None)
+        item.pop('root_cause_workspace', None)
+        # Prevent the normal pipeline's already-processed guard from firing
+        # after a stale root cause has been rejected.
+        if 'state' in item:
+            item['state'] = 'no'
+        if item.get('fixed_state') == 'yes':
+            item['fixed_state'] = 'no'
+        data[row_index] = item
+
+        dir_name = os.path.dirname(os.path.abspath(file_path))
+        fd, tmp_path = tempfile.mkstemp(dir=dir_name, prefix='.projects_yaml_tmp_', suffix='.yaml')
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as tmp_f:
+                yaml.dump(data, tmp_f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            os.replace(tmp_path, file_path)
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise
+        return {'status': 'success', 'message': f'Cleared stale root cause at row {row_index}.'}
+    except Exception as e:
+        return {'status': 'error', 'message': f'Failed to clear root cause: {e}'}

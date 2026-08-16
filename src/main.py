@@ -7,7 +7,13 @@ import subprocess
 from datetime import datetime
 from dotenv import load_dotenv
 # 🌟 引入 update_yaml_report 用于回填
-from src.utils import timezone_normalize, clamp_diff_content, download_log_from_url, update_yaml_report
+from src.utils import (
+    timezone_normalize,
+    clamp_diff_content,
+    download_log_from_url,
+    update_yaml_report,
+    clear_root_cause_report,
+)
 from src.workspace import WorkspaceManager
 from src.ecrcl_engine import execute_ecrcl_localization
 from src.agent import CognitiveAgent
@@ -159,6 +165,43 @@ def cleanup_environment(project_name: str, upstream_path: str, downstream_path: 
             logger.warning(f"  - Warning: Failed to restore downstream git state: {e}")
 
 
+def validate_commit_as_root_cause(local_workspace: WorkspaceManager, active_workspace: str,
+                                  candidate_sha: str, project_name: str,
+                                  project_source_path: str, origin_type: str,
+                                  project_config: dict) -> bool:
+    """Validate candidate B using the same A-pass/B-fail rule for both origins."""
+    mount_path = None if origin_type == "DOWNSTREAM" else project_source_path
+    try:
+        parent_sha = subprocess.run(
+            ["git", "-C", active_workspace, "rev-parse", f"{candidate_sha}^"],
+            capture_output=True, text=True, check=True
+        ).stdout.strip()
+        for sha, expected_success in ((parent_sha, True), (candidate_sha, False)):
+            subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"],
+                           capture_output=True, check=True)
+            subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"],
+                           capture_output=True, check=True)
+            subprocess.run(["git", "-C", active_workspace, "checkout", "--detach", sha],
+                           capture_output=True, check=True)
+            build_ok = local_workspace.execute_docker_compile(
+                project_name=project_name,
+                upstream_mount_path=mount_path,
+                engine=project_config["engine"],
+                sanitizer=project_config["sanitizer"],
+                architecture=project_config["architecture"],
+                environment_lock=project_config
+            )
+            if build_ok != expected_success:
+                return False
+        return True
+    except Exception as e:
+        logger.warning(f"Existing root-cause verification failed for {candidate_sha}: {e}")
+        return False
+    finally:
+        subprocess.run(["git", "-C", active_workspace, "reset", "--hard", "HEAD"], capture_output=True)
+        subprocess.run(["git", "-C", active_workspace, "clean", "-ffdx"], capture_output=True)
+
+
 class StandalonePipeline:
     """
     负责循环读取 projects.yaml, 准备本地代码环境并调用 ECRCL 核心。
@@ -207,8 +250,14 @@ class StandalonePipeline:
                 logger.warning(f"Skipping entry missing project name key: {proj}")
                 continue
 
+            existing_root_sha = proj.get("root_cause_commit")
+            existing_root_origin = str(proj.get("root_cause_workspace", "")).upper()
+            has_existing_root = bool(
+                existing_root_sha and existing_root_sha != "UNKNOWN" and
+                existing_root_origin in {"UPSTREAM", "DOWNSTREAM"}
+            )
             state_flag = proj.get("state") or proj.get("fixed_state")
-            if state_flag == "yes":
+            if state_flag == "yes" and not has_existing_root:
                 logger.info(f"Skipping project '{project_name}' (already processed with state: 'yes')")
                 continue
 
@@ -236,6 +285,75 @@ class StandalonePipeline:
                     dest_path=project_source_path,
                     checkout_sha=software_sha
                 )
+
+                if has_existing_root:
+                    active_workspace = (
+                        project_source_path if existing_root_origin == "UPSTREAM" else oss_fuzz_path
+                    )
+                    logger.info(
+                        "Existing root-cause check: %s (%s)",
+                        existing_root_sha,
+                        existing_root_origin
+                    )
+                    existing_verified = validate_commit_as_root_cause(
+                        local_workspace=local_workspace,
+                        active_workspace=active_workspace,
+                        candidate_sha=existing_root_sha,
+                        project_name=project_name,
+                        project_source_path=project_source_path,
+                        origin_type=existing_root_origin,
+                        project_config=proj
+                    )
+                    if existing_verified:
+                        logger.info("Existing root cause verified; marking project processed.")
+                        update_yaml_report(
+                            file_path=self.config_yaml,
+                            row_index=row_index,
+                            result="Success",
+                            commit=existing_root_sha,
+                            workspace=existing_root_origin
+                        )
+                        continue
+
+                    logger.warning(
+                        "Existing root cause %s failed; trying its parent as the replacement root cause.",
+                        existing_root_sha
+                    )
+                    try:
+                        parent_sha = subprocess.run(
+                            ["git", "-C", active_workspace, "rev-parse", f"{existing_root_sha}^"],
+                            capture_output=True, text=True, check=True
+                        ).stdout.strip()
+                    except Exception as parent_err:
+                        logger.warning("Cannot resolve parent of existing root cause: %s", parent_err)
+                        parent_sha = None
+
+                    parent_verified = bool(parent_sha) and validate_commit_as_root_cause(
+                        local_workspace=local_workspace,
+                        active_workspace=active_workspace,
+                        candidate_sha=parent_sha,
+                        project_name=project_name,
+                        project_source_path=project_source_path,
+                        origin_type=existing_root_origin,
+                        project_config=proj
+                    )
+                    if parent_verified:
+                        logger.info("Parent of existing root cause verified; updating YAML.")
+                        update_yaml_report(
+                            file_path=self.config_yaml,
+                            row_index=row_index,
+                            result="Success",
+                            commit=parent_sha,
+                            workspace=existing_root_origin
+                        )
+                        continue
+
+                    logger.warning(
+                        "Existing root cause and its parent failed; clearing stale root cause and continuing localization."
+                    )
+                    clear_root_cause_report(self.config_yaml, row_index)
+                    proj.pop("root_cause_commit", None)
+                    proj.pop("root_cause_workspace", None)
 
                 local_log_path = os.path.join(PROJECT_ROOT, "build_error_log", f"{project_name}_error.txt")
                 if raw_log_path.startswith(("http://", "https://")):
