@@ -64,18 +64,28 @@ class WorkspaceManager:
 
     @staticmethod
     def _dependency_lock_map(environment_lock: Optional[dict]) -> dict:
-        """Accept both the concise mapping and the list form in projects.yaml."""
+        """Build clone locks, including the project's own software SHA."""
         if not environment_lock:
             return {}
+
+        def normalize(repo: str) -> str:
+            repo = str(repo).rstrip("/")
+            return repo[:-4] if repo.endswith(".git") else repo
+
+        result = {}
+        software_repo = environment_lock.get("software_repo_url")
+        software_sha = environment_lock.get("software_sha")
+        if software_repo and software_sha:
+            result[normalize(software_repo)] = str(software_sha)
+
         values = environment_lock.get("dependency_shas", {})
         if isinstance(values, dict):
-            return {str(repo).rstrip("/"): str(sha) for repo, sha in values.items()}
-        if isinstance(values, list):
-            result = {}
+            result.update({normalize(repo): str(sha) for repo, sha in values.items()})
+        elif isinstance(values, list):
             for item in values:
                 if isinstance(item, dict) and item.get("repo") and item.get("sha"):
-                    result[str(item["repo"]).rstrip("/")] = str(item["sha"])
-            return result
+                    result[normalize(item["repo"])] = str(item["sha"])
+        return result
         return {}
 
     def _lock_dockerfile(self, oss_fuzz_path: str, project_name: str,
