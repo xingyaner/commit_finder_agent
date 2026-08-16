@@ -235,10 +235,25 @@ Return exactly this JSON shape:
                     logger.warning(f"[INITIAL_SUSPECT_SELECTION] Dropping duplicate SHA from LLM output: {sha}")
                 if len(filtered) >= max_count:
                     break
+            if not filtered and candidate_commits:
+                # A semantic LLM rejection must not suppress physical replay.
+                # Always test at least the first valid candidate.
+                filtered = [str(candidate_commits[0]["sha"]).strip()]
+                logger.warning(
+                    "[INITIAL_SUSPECT_SELECTION] LLM returned no usable SHA; "
+                    f"falling back to candidate {filtered[0]}"
+                )
             logger.info(f"[INITIAL_SUSPECT_SELECTION] Filtered selected SHAs: {filtered}")
             return filtered
         except Exception as e:
             logger.error(f"LLM initial suspect selection failed: {e}")
+            if candidate_commits:
+                fallback_sha = str(candidate_commits[0]["sha"]).strip()
+                logger.warning(
+                    "[INITIAL_SUSPECT_SELECTION] LLM failed; "
+                    f"falling back to candidate {fallback_sha}"
+                )
+                return [fallback_sha]
             return []
 
     def select_final_suspects(
@@ -308,10 +323,23 @@ Return exactly this JSON shape:
                     "[FINAL_SUSPECT_SELECTION] No valid SHAs remained after filtering. "
                     "Check raw LLM response and allowed SHA list above."
                 )
+                if detailed_candidates:
+                    filtered = [str(detailed_candidates[0]["sha"]).strip()]
+                    logger.warning(
+                        "[FINAL_SUSPECT_SELECTION] LLM returned no usable SHA; "
+                        f"falling back to candidate {filtered[0]} for physical replay"
+                    )
             logger.info(f"[FINAL_SUSPECT_SELECTION] Filtered selected SHAs: {filtered}")
             return filtered
         except Exception as e:
             logger.error(f"LLM final suspect selection failed: {e}")
+            if detailed_candidates:
+                fallback_sha = str(detailed_candidates[0]["sha"]).strip()
+                logger.warning(
+                    "[FINAL_SUSPECT_SELECTION] LLM failed; "
+                    f"falling back to candidate {fallback_sha} for physical replay"
+                )
+                return [fallback_sha]
             return []
 
     def execute_arbitration(self, context_data: dict, instruction_path: str) -> str:
