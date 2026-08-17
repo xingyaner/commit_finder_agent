@@ -37,15 +37,44 @@ class WorkspaceManager:
         return os.path.join(self.base_dir, "downstream", "oss-fuzz")
 
     def clone_or_update_repo(self, repo_url: str, dest_path: str, checkout_sha: str = None):
-        """克隆或拉取最新的 Git 仓库状态"""
+        """Clone/fetch a repository with diagnostics and retry for transient network failures."""
         dest_path = os.path.abspath(dest_path)
         if not os.path.exists(dest_path):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             logger.info(f"Cloning {repo_url} into {dest_path}...")
-            subprocess.run(["git", "clone", repo_url, dest_path], check=True, capture_output=True)
+            clone_cmd = ["git", "clone", repo_url, dest_path]
+            last_error = None
+            for attempt in range(1, 4):
+                try:
+                    subprocess.run(clone_cmd, check=True, capture_output=True, text=True)
+                    break
+                except subprocess.CalledProcessError as e:
+                    last_error = e
+                    diagnostics = (e.stderr or e.stdout or "").strip()
+                    logger.error(
+                        "Git clone failed (attempt %d/3) for %s, exit=%s: %s",
+                        attempt, repo_url, e.returncode, diagnostics[-2000:]
+                    )
+                    # A failed clone can leave a partial repository that makes
+                    # the next run incorrectly enter the fetch path.
+                    if os.path.exists(dest_path):
+                        shutil.rmtree(dest_path, ignore_errors=True)
+                    if attempt < 3:
+                        time.sleep(2 ** (attempt - 1))
+            else:
+                raise last_error
         else:
             logger.info(f"Fetching updates for repository at {dest_path}...")
-            subprocess.run(["git", "-C", dest_path, "fetch", "--all"], check=True, capture_output=True)
+            try:
+                subprocess.run(["git", "-C", dest_path, "fetch", "--all"],
+                               check=True, capture_output=True, text=True)
+            except subprocess.CalledProcessError as e:
+                diagnostics = (e.stderr or e.stdout or "").strip()
+                logger.error(
+                    "Git fetch failed for %s, exit=%s: %s",
+                    dest_path, e.returncode, diagnostics[-2000:]
+                )
+                raise
 
         if checkout_sha:
             logger.info(f"Checking out to SHA: {checkout_sha}")

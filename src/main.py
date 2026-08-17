@@ -589,7 +589,9 @@ class StandalonePipeline:
 
             except Exception as crash_err:
                 logger.error(f"CRITICAL: StandalonePipeline execution crashed for {project_name}: {crash_err}")
-                update_yaml_report(self.config_yaml, row_index, "Failure")
+                # A preparation/runtime crash (for example a transient Git
+                # clone failure) is not a completed root-cause check. Keep the
+                # row retryable instead of marking it state: yes.
 
             finally:
                 cleanup_environment(project_name, project_source_path, oss_fuzz_path)
