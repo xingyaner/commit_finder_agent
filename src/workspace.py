@@ -131,7 +131,9 @@ class WorkspaceManager:
             def pin_clone(match):
                 destination = match.group("dest") or repo.rsplit("/", 1)[-1].removesuffix(".git")
                 return (
-                    f"git clone{match.group('options')} {repo} {destination} && "
+                    # A SHA checkout cannot rely on --depth 1: the target may
+                    # be an older commit outside the shallow clone.
+                    f"git clone {repo} {destination} && "
                     f"(cd {destination} && git checkout {sha})"
                 )
 
