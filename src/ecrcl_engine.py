@@ -142,6 +142,11 @@ def execute_ecrcl_localization(
         suspect_commits.extend(collect_commits(oss_fuzz_path, "DOWNSTREAM", window_only=False))
         suspect_commits.extend(collect_commits(project_source_path, "UPSTREAM", window_only=False))
 
+    # Keep repository origin as metadata and use a neutral chronological order.
+    # The attribution phase filters the pool later; this ordering must not give
+    # either workspace an implicit priority when LLM selection needs a fallback.
+    suspect_commits.sort(key=lambda commit: commit.get("epoch", 0), reverse=True)
+
     return {
         "status": "success",
         "candidate_commits": suspect_commits,

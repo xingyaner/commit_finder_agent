@@ -236,24 +236,28 @@ Return exactly this JSON shape:
                 if len(filtered) >= max_count:
                     break
             if not filtered and candidate_commits:
-                # A semantic LLM rejection must not suppress physical replay.
-                # Always test at least the first valid candidate.
-                filtered = [str(candidate_commits[0]["sha"]).strip()]
+                # Preserve the complete attribution-filtered pool for the final
+                # selector.  The initial selector is only a narrowing stage;
+                # an empty answer here must not silently decide the SHA by list
+                # position and deprive the final LLM of the remaining evidence.
+                filtered = [str(candidate["sha"]).strip() for candidate in candidate_commits]
                 logger.warning(
                     "[INITIAL_SUSPECT_SELECTION] LLM returned no usable SHA; "
-                    f"falling back to candidate {filtered[0]}"
+                    f"passing all {len(filtered)} attribution-filtered candidates "
+                    "to final selection"
                 )
             logger.info(f"[INITIAL_SUSPECT_SELECTION] Filtered selected SHAs: {filtered}")
             return filtered
         except Exception as e:
             logger.error(f"LLM initial suspect selection failed: {e}")
             if candidate_commits:
-                fallback_sha = str(candidate_commits[0]["sha"]).strip()
+                fallback_shas = [str(candidate["sha"]).strip() for candidate in candidate_commits]
                 logger.warning(
                     "[INITIAL_SUSPECT_SELECTION] LLM failed; "
-                    f"falling back to candidate {fallback_sha}"
+                    f"passing all {len(fallback_shas)} attribution-filtered candidates "
+                    "to final selection"
                 )
-                return [fallback_sha]
+                return fallback_shas
             return []
 
     def select_final_suspects(

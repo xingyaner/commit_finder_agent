@@ -400,10 +400,34 @@ class StandalonePipeline:
                     update_yaml_report(self.config_yaml, row_index, "Failure")
                     continue
 
+                # Attribution constrains the search space.  The LLM still chooses
+                # the SHA and its ordering within that space, but it must not
+                # select a commit from the other repository.
+                attributed_candidates = [
+                    candidate for candidate in candidate_commits
+                    if str(candidate.get("origin", "")).upper() ==
+                    llm_attribution["attribution_type"]
+                ]
+                if not attributed_candidates:
+                    logger.error(
+                        "No candidate commits match attribution %s; refusing to "
+                        "replay candidates from the other workspace.",
+                        llm_attribution["attribution_type"]
+                    )
+                    update_yaml_report(self.config_yaml, row_index, "Failure")
+                    continue
+
+                logger.info(
+                    "Candidate pool constrained by attribution %s: %d/%d candidates",
+                    llm_attribution["attribution_type"],
+                    len(attributed_candidates),
+                    len(candidate_commits)
+                )
+
                 initial_selected_shas = local_agent.select_initial_suspects(
                     project_name=project_name,
                     failure_region_text=ecrcl_result["failure_region_text"],
-                    candidate_commits=candidate_commits,
+                    candidate_commits=attributed_candidates,
                     max_count=4
                 )
                 logger.info(f"LLM initial suspect set: {initial_selected_shas}")
@@ -421,7 +445,7 @@ class StandalonePipeline:
                 )
                 logger.info(f"LLM final replay set: {final_selected_shas}")
 
-                candidate_by_sha = {c.get("sha"): c for c in candidate_commits}
+                candidate_by_sha = {c.get("sha"): c for c in attributed_candidates}
                 suspect_pool = [candidate_by_sha[sha] for sha in final_selected_shas if sha in candidate_by_sha]
 
                 final_suspect = "UNKNOWN"

@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.py[cod]
+project_run_logs/
+temp_workspaces/
+src/fuzz_build_log_file/
+output_results/consolidated_results.json
