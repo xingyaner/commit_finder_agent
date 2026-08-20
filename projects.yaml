@@ -1,3 +1,39 @@
+- project: espeak-ng
+  language: c++
+  error_time: '2023-04-03'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-55ee4d54-bda3-46a2-9566-7f611c1a041c.txt
+  software_repo_url: https://github.com/espeak-ng/espeak-ng
+  software_sha: 12b58fbcb211024d6883b2028206bf94fab4f349
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c099d3d710d12d5d9a39498463ff10973977d1c7a85e9a0fbe00c7f0a0fa9fb8
+  error_category: RC13
+  root_cause_commit: 96c1ca91808505026b4eef283124ca1d62b2f534
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-17'
+- project: swift-nio
+  language: swift
+  error_time: '2025-10-07'
+  oss-fuzz_sha: d331f3ca153e4ec9b7253b1e0ad03d122c6441b4
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-41bfc0a5-c0fe-48b4-a682-c0f48e48154d.txt
+  software_repo_url: https://github.com/apple/swift-nio.git
+  software_sha: 97c3f28ad0dc2dc4782483c57c4a71050d7afd75
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 1051d1a0a51f82987e4fa36f85dd8cee525df635f8523ac35575086979625e67
+  error_category: RC13
+  root_cause_commit: a3ed8e10ab36fe86b7dfda13e0ddfc9c5ecb802a
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-17'
 - project: trafficserver
   language: c++
   error_time: '2025-02-18'
@@ -13,13 +49,13 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-17'
 - project: binutils
   language: c++
   error_time: '2025-10-03'
   oss-fuzz_sha: 6eb955c65e34bf021dba6cba02795457061758da
   fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-19308e5e-fd39-4bf9-b953-d503cc1bb252.txt
-  software_repo_url: https://github.com/ChrisDodd/binutils-gdb.git
+  software_repo_url: git://sourceware.org/git/binutils-gdb.git
   software_sha: f6ed490b6781e55074a21b2e05047ea7f9db688a
   engine: afl
   sanitizer: address
@@ -29,7 +65,25 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-17'
+- project: glslang
+  language: c++
+  error_time: '2025-09-26'
+  oss-fuzz_sha: d175027c3507ae9a8a0a624aa00f731945047fd4
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-90c470ea-8fc7-4ffb-a92d-26c990ae639b.txt
+  software_repo_url: https://github.com/khronosgroup/glslang
+  software_sha: a57276bf558f5cf94d3a9854ebdf5a2236849a5a
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 6692645e422f938af87ea2a77d721f67f7de87294fc999952d34ded0c6a286c1
+  error_category: RC13
+  root_cause_commit: e70645c4571fb5136f2fb3f27f25daff2b83cfa6
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-17'
 - project: augeas
   language: c++
   error_time: '2025-12-16'
@@ -45,7 +99,25 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-17'
+- project: bind9
+  language: c
+  error_time: '2025-11-28'
+  oss-fuzz_sha: efba8534530bb3d25992da845e74006f96e46873
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8ed4ca2b-07c5-4a40-bef8-720e715babfb.txt
+  software_repo_url: https://gitlab.isc.org/isc-projects/bind9.git
+  software_sha: d441e14cbf7f56619b3381e170cc2db24be5b48d
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: f51f7e08f410e2d4453693bb0cae3f6bdc53470e8b6bf33ae10fd98757f4e35c
+  error_category: RC13
+  root_cause_commit: d5b8adf084845befccc4a76a3b2c3445ff72cfd3
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-17'
 - project: bind9
   language: c
   error_time: '2025-09-24'
@@ -58,12 +130,44 @@
   architecture: x86_64
   base_image_digest: 24ece23c6e7e4483fd49b19c31e4084992088b58a902c3c45d74d10541f3aa40
   error_category: RC13
-  root_cause_commit: 63389b8ce6da705da10606829b0eb9031f22df26
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-17'
+- project: croaring
+  language: c
+  error_time: '2025-10-29'
+  oss-fuzz_sha: 85471aec5b8fba9232bbf77daca0a8895378bcf6
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-189de54d-cb21-45e9-8c8f-37c767da42a3.txt
+  software_repo_url: https://github.com/RoaringBitmap/CRoaring
+  software_sha: 8711167f6c06f663ef2163875f2704bd44355cb5
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 71425dd88e177abd8d71f351fe6148e8b6a93695aeb109a8b6fb2c7c002c9e65
+  error_category: RC13
+  root_cause_commit: 8711167f6c06f663ef2163875f2704bd44355cb5
   root_cause_workspace: UPSTREAM
   fixed_state: 'no'
   state: 'yes'
   fix_result: Success
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-17'
+- project: cryptography
+  language: python
+  error_time: '2025-10-05'
+  oss-fuzz_sha: ff1963472dda380ee8fa71ff311fd8276a410027
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8ce33fda-6155-43b4-b4da-0ce92b3fbb4f.txt
+  software_repo_url: https://github.com/pyca/cryptography
+  software_sha: 47ee67d0902e7f7a551072610973418531a12a3a
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 76fc4d8513691cfd7031464348a8fe46810c243c04344fe6211363bcdd6d245e
+  error_category: RC9
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-17'
 - project: ffmpeg
   language: c++
   error_time: '2025-12-29'
@@ -79,7 +183,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-17'
 - project: ffmpeg
   language: c++
   error_time: '2025-12-05'
@@ -95,7 +199,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: freerdp
   language: c
   error_time: '2025-09-26'
@@ -111,7 +215,55 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-19'
+- project: fwupd
+  language: c
+  error_time: '2025-12-05'
+  oss-fuzz_sha: ee2ba6094402cac75e7b30fa407b679a0a717cf3
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-e052a72d-2ac3-4f51-80b3-943906c015fe.txt
+  software_repo_url: https://github.com/fwupd/fwupd.git
+  software_sha: 3df3540a732dc6a08cb352666bc35222b95ae385
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: bdbe44209365fbbabc2c1a83e7a67cc69cc843caf641ffa1c53f357a284873c0
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-19'
+- project: fwupd
+  language: c
+  error_time: '2025-09-25'
+  oss-fuzz_sha: 58a3ba8b2c0e10090f2f440f7fd15ae514b0fa68
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-020dc534-a5aa-46f7-b066-808f49b8c2cc.txt
+  software_repo_url: https://github.com/fwupd/fwupd.git
+  software_sha: 0f1dbcb6959545776544caf57915cd5b0317362e
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: fff6dfd3cd34356d1f99d47aff87c24db5706c229c8bc67726d330bd29881ee8
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-19'
+- project: gdal
+  language: c++
+  error_time: '2025-11-11'
+  oss-fuzz_sha: b8e757906e1402fc7549c6c0125f99bd28d7b838
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-fe863633-a4bb-449c-8f9c-585dcb2b9f3a.txt
+  software_repo_url: https://github.com/OSGeo/gdal
+  software_sha: 73d7147d38d19abefea6ab74ae8c38b2a8d9ffe2
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 0c229e61349e6e5f4dbcfd433b2b0b5906012d49216675a6402ad1ed270715c4
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-19'
 - project: gdal
   language: c++
   error_time: '2025-12-25'
@@ -127,7 +279,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: gdal
   language: c++
   error_time: '2025-09-22'
@@ -143,7 +295,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: gdal
   language: c++
   error_time: '2025-09-26'
@@ -159,7 +311,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: gpsd
+  language: c
+  error_time: '2025-11-22'
+  oss-fuzz_sha: 261e9e8784d317c6697a57e49d0bd914295a32b6
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-0d260ab9-7eb9-4eff-ab77-9b268f126d22.txt
+  software_repo_url: https://gitlab.com/gpsd/gpsd
+  software_sha: 56dd58a67631eafa9aeddbcf14df26bf0b83f926
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5b4a8d18f9a854c128279c66c609f4f9c8dc29da9681ec1ecb98c5c1bb7f98e6
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: haproxy
   language: c++
   error_time: '2025-10-22'
@@ -175,7 +343,111 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: jooq
+  language: jvm
+  error_time: '2025-10-11'
+  oss-fuzz_sha: 3775fff873ca34ab6dcf4dad544f3eba224e7b77
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-05f9613d-0d9e-4140-8276-39a0b48470e6.txt
+  software_repo_url: https://github.com/jOOQ/jOOQ.git
+  software_sha: 0758648ccdc65124c8a0e9f0e65e66973e4f4159
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 3f0869fe5b9309d76fbd35dce84b8ca4f0dede96123f12e80ed093ec188983ce
+  error_category: RC13
+  root_cause_commit: 5f7e72ecdb86bfd64e105b8d922df698164689de
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: jooq
+  language: jvm
+  error_time: '2025-10-16'
+  oss-fuzz_sha: 2488cf3749d8a4c207463c7ae3fef91364c17b77
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-fe57b998-ddfb-4f80-9f4c-5ddf9e1da992.txt
+  software_repo_url: https://github.com/jOOQ/jOOQ.git
+  software_sha: 52d5aa60b51674ff9b078334b49e80904785d7d2
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: f0f37a249da32e990c88289f6880bbb298c215c390b0da9aad5b2270ddb69cd6
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: jooq
+  language: jvm
+  error_time: '2025-10-22'
+  oss-fuzz_sha: 98ed46e3f74485e5b734293fd715351c6b71cb71
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-659b52e4-2471-4aff-93c4-e21dbde017c3.txt
+  software_repo_url: https://github.com/jOOQ/jOOQ.git
+  software_sha: 2c4dc9d092d506c04df1898fbdde2a8217cda5bf
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 4592ec00d5d472f47714ae3cb8be8ab1447715dbc43a4157f6a19166e1b09822
+  error_category: RC13
+  root_cause_commit: 4f289c39cea732529788dd7869492b330504d2b7
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: jooq
+  language: jvm
+  error_time: '2025-11-26'
+  oss-fuzz_sha: 8c75bf08fabff214da2e110309c7be332b3803eb
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-bd32c0ee-34ca-42c7-8128-2eeff7e23b67.txt
+  software_repo_url: https://github.com/jOOQ/jOOQ.git
+  software_sha: 1077c69457952ec296ba6614338b0d9b2275e9a2
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 8b23955caaed68d9b1d248a868633c63e4b12667cbe61f7062cf42e986a95905
+  error_category: RC13
+  root_cause_commit: 1077c69457952ec296ba6614338b0d9b2275e9a2
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: jq
+  language: c
+  error_time: '2025-10-05'
+  oss-fuzz_sha: ff1963472dda380ee8fa71ff311fd8276a410027
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-cf0ca5dc-4e34-478e-8bfd-2b979bafa762.txt
+  software_repo_url: https://github.com/jqlang/jq
+  software_sha: 589a6947fa5e6f6f1d3f340053a8c92fa8b9f445
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 95d5aea07f19d05e50eef7b71717da9c964b72481fff94d0a4efe3fe5284c7f2
+  error_category: RC13
+  root_cause_commit: 589a6947fa5e6f6f1d3f340053a8c92fa8b9f445
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: kea
+  language: c++
+  error_time: '2025-11-22'
+  oss-fuzz_sha: 261e9e8784d317c6697a57e49d0bd914295a32b6
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-91c310f6-58f3-4b69-8d5a-fb533caf13c2.txt
+  software_repo_url: https://gitlab.isc.org/isc-projects/kea
+  software_sha: 449a3ca834a2dbda4ca1492c67877a07959fe2ae
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5b4a8d18f9a854c128279c66c609f4f9c8dc29da9681ec1ecb98c5c1bb7f98e6
+  error_category: RC9
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: libidn2
   language: c++
   error_time: '2025-09-29'
@@ -191,7 +463,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: librdkafka
+  language: c++
+  error_time: '2025-11-07'
+  oss-fuzz_sha: e2e0de976046449b23332a0b888017e075b55b31
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-71a4b4f8-7c46-48de-8632-eda01bfeff4f.txt
+  software_repo_url: https://github.com/edenhill/librdkafka
+  software_sha: 616fb6e8074e82e0302f1c7d2896d7e577f8eb9b
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 0c229e61349e6e5f4dbcfd433b2b0b5906012d49216675a6402ad1ed270715c4
+  error_category: 'RC9: Dependency issues'
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: libstdcpp
   language: c++
   error_time: '2025-10-08'
@@ -207,7 +495,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: libstdcpp
   language: c++
   error_time: '2025-12-14'
@@ -221,9 +509,24 @@
   base_image_digest: 6d7dd44ebec7ae27386a7b8a37ce0e827fe1604c33ef5a3a009a10f0fdf7bc34
   error_category: 'RC13: Source code compilation errors'
   fixed_state: 'no'
+- project: libtpms
+  language: c++
+  error_time: '2025-09-24'
+  oss-fuzz_sha: 04679298d01046bd7f56fa7e9459532161f973c2
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-2e7339e5-244f-47df-bcbd-9e20028899ff.txt
+  software_repo_url: https://github.com/stefanberger/libtpms
+  software_sha: e064e54082a436e7a8b8ccc15c486c0158c3d282
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 24ece23c6e7e4483fd49b19c31e4084992088b58a902c3c45d74d10541f3aa40
+  error_category: RC13
+  root_cause_commit: 4504f47c67816d577d2a3524c658fae433d5bd16
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
   state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: libvips
   language: c++
   error_time: '2025-12-03'
@@ -239,7 +542,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: libyal
   language: c
   error_time: '2025-10-31'
@@ -255,7 +558,73 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: mosquitto
+  language: c
+  error_time: '2025-12-11'
+  oss-fuzz_sha: 099b4909f37e7f712f6f444c4ba266a5bcfc321f
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-3449e0f7-812e-4bc8-85f6-e89034125bd5.txt
+  software_repo_url: https://github.com/eclipse/mosquitto
+  software_sha: fd0fa727037fe14a554b4a3541f167788a52389d
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 86a0102fd71cec2bc5bb42657faa089c6ab8303342d14a22ef002ead16863b53
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: neomutt
+  language: c++
+  error_time: '2026-01-02'
+  oss-fuzz_sha: ec42a71c7e3a6e0e11c1e985f671b13d9860db12
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-37c06df6-a70f-456a-a5c8-ee111887d030.txt
+  software_repo_url: https://github.com/neomutt/neomutt
+  software_sha: 9e9dc2cf3b7cb685dcc33578a758bf409a31da99
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 2d948a5c2c9c11c50ff8a59da5916e4eec1c9abf2638cfe683d96e804994aa5b
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: ntopng
+  language: c++
+  error_time: '2026-01-03'
+  oss-fuzz_sha: 3f6797671645f6843f2b735162f75e842dbb9f40
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-9a08d366-099c-4d94-92d4-a23e1901e7e2.txt
+  software_repo_url: https://github.com/ntop/ntopng.git
+  software_sha: c5637a95e53fe7927d8b6a45f1dfe54ac53e0500
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 9bdf381e5bceb723e4201b2d2bbf79ed474c73d64b871e6102724de93d8702fc
+  error_category: RC9
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: ots
+  language: c++
+  error_time: '2025-11-11'
+  oss-fuzz_sha: b8e757906e1402fc7549c6c0125f99bd28d7b838
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8dc24024-9177-4d3a-9d60-09a22bc8d1c0.txt
+  software_repo_url: https://github.com/khaledhosny/ots.git
+  software_sha: ee75ff5dcef67fcd3ea7255044c889349e210750
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 0c229e61349e6e5f4dbcfd433b2b0b5906012d49216675a6402ad1ed270715c4
+  error_category: RC13
+  root_cause_commit: 41136f2f0afc3db21a1f95b3348f62c5d6372b93
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: poppler
   language: c++
   error_time: '2025-11-18'
@@ -271,7 +640,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: proj4
   language: c++
   error_time: '2025-11-16'
@@ -287,7 +656,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: relic
   language: c++
   error_time: '2025-10-04'
@@ -303,7 +672,25 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: tinysparql
+  language: c
+  error_time: '2025-11-06'
+  oss-fuzz_sha: 9afe5cd870cdf47ebdcb36e4daaa7d2bc445231a
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-085433ac-cba5-49b0-b1b8-3bfe4c9094d6.txt
+  software_repo_url: https://gitlab.gnome.org/GNOME/tinysparql.git
+  software_sha: c0984cae38f998b5571ee907e0e75f76838ee13c
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 0c229e61349e6e5f4dbcfd433b2b0b5906012d49216675a6402ad1ed270715c4
+  error_category: RC13
+  root_cause_commit: c0984cae38f998b5571ee907e0e75f76838ee13c
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: wasmer
   language: rust
   error_time: '2025-12-30'
@@ -317,9 +704,24 @@
   base_image_digest: 250e04396d9dc78bdffadf2dc5dcb36fabdf176bbbe02a69d648deffb21edd80
   error_category: RC9
   fixed_state: 'no'
+- project: xmlsec
+  language: c++
+  error_time: '2025-10-31'
+  oss-fuzz_sha: cb360c2c6a7aaad794b8e09498f336a62c9a09a4
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-fba5869c-402d-4e5f-ae6d-6bb54c1bba59.txt
+  software_repo_url: https://github.com/lsh123/xmlsec
+  software_sha: 1eb21e26a6ab3ee73e38900305ba546863890200
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 81c0c136cda1ba3f85fd41f65851f7feb942a5fc0aeca4c4f02fb53fa5e835d8
+  error_category: RC9
+  root_cause_commit: 1eb21e26a6ab3ee73e38900305ba546863890200
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
   state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: xpdf
   language: c++
   error_time: '2025-11-15'
@@ -335,7 +737,43 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: dovecot
+  language: c
+  error_time: '2025-10-10'
+  oss-fuzz_sha: 4b541c7c4d0671a59a9bee4999e6fc4c36483bc1
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-5b243c47-37e7-437e-aed0-140173bba788.txt
+  software_repo_url: https://github.com/dovecot/core
+  software_sha: 555ff1adff570cf6b39a725f0c0c3396b68bdbd2
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: b79d3707eeffb6c75a530689b5ade9038bd005628f44d30c62680f4b810c3900
+  error_category: RC13
+  root_cause_commit: 96a94c4c9d38ae782ba8013fa2b727ba442ef7ea
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: glaze
+  language: c++
+  error_time: '2025-09-16'
+  oss-fuzz_sha: 9ca5b10546881cf67145b6b8e707b7d79c7b4950
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-26e2e2a3-d98f-4f65-afe2-e539c8f4482d.txt
+  software_repo_url: https://github.com/stephenberry/glaze
+  software_sha: e5540f239d99853bc4611c8f348be565810fa6cd
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 192b038764086fcd174a3afd7341abe6e922701b0d8440524552fd9976e72a30
+  error_category: RC13
+  root_cause_commit: c398e85bb02290cdd7207ad57c2c36ab787e11d8
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: aptos-core
   language: rust
   error_time: '2026-01-30'
@@ -351,7 +789,25 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: lwan
+  language: c++
+  error_time: '2025-05-12'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-80ff7bd1-d840-4a16-ba27-ad0d86c1b5b5.txt
+  software_repo_url: https://github.com/lpereira/lwan.git
+  software_sha: e7ac7f13afd1e060bfef61d2ec5d2a60f356b0eb
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 2d948a5c2c9c11c50ff8a59da5916e4eec1c9abf2638cfe683d96e804994aa5b
+  error_category: RC13
+  root_cause_commit: 6c0c7fb17a54e1780f009b447c2020cbb918b11d
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: lxc
   language: c
   error_time: '2025-09-09'
@@ -367,7 +823,25 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: quiche
+  language: c++
+  error_time: '2024-10-30'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-97f59615-143d-4e70-98bb-3b7664cf0945.txt
+  software_repo_url: https://github.com/google/quiche
+  software_sha: 0309bc70d3de3e8ba340c9121b0a7c71e2da64d3
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 19782f7fe8092843368894dbc471ce9b30dd6a2813946071a36e8b05f5b1e27e
+  error_category: RC13
+  root_cause_commit: e5095b5d9462acd1fadbe2f8a5e19680c95f5991
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: surrealdb
   language: rust
   error_time: '2025-10-11'
@@ -383,7 +857,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: surrealdb
   language: rust
   error_time: '2025-11-29'
@@ -399,7 +873,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
 - project: relic
   language: c++
   error_time: '2026-02-08'
@@ -415,7 +889,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: e2fsprogs
+  language: c
+  error_time: '2025-12-24'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-2f51f9bd-5786-42db-895c-b1fff426c183.txt
+  software_repo_url: https://github.com/tytso/e2fsprogs
+  software_sha: 0b2752ce6276b383a5254cd766204f81f41b6631
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c099d3d710d12d5d9a39498463ff10973977d1c7a85e9a0fbe00c7f0a0fa9fb8
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: grpc-swift
   language: swift
   error_time: '2025-10-07'
@@ -428,10 +918,12 @@
   architecture: x86_64
   base_image_digest: 1051d1a0a51f82987e4fa36f85dd8cee525df635f8523ac35575086979625e67
   error_category: RC13
+  root_cause_commit: 472c95fdec285bb86338434908c64c6bc8c74929
+  root_cause_workspace: UPSTREAM
   fixed_state: 'no'
   state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: irssi
   language: c++
   error_time: '2025-12-22'
@@ -447,7 +939,41 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-18'
+- project: duckdb
+  language: c++
+  error_time: '2026-05-29'
+  oss-fuzz_sha: 3fa060f3d9cf0b50368439181d94f23cb51bde42
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-2383b611-2272-417d-bf97-e6d6d0f4d0a5.txt
+  software_repo_url: https://github.com/duckdb/duckdb
+  software_sha: 7290174816dfb595a611aa87879ca9c2f3b5bd8a
+  engine: honggfuzz
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: afa8f97dbfd3b2368c717c231f14e2299cb02fe928358184f942e0dd673d8838
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: lwan
+  language: c++
+  error_time: '2026-04-24'
+  oss-fuzz_sha: 36a9970605b0c9ca0d982df01f2f82bbb62f3bdd
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-578da3de-ea52-4af8-b02a-b23b44711b69.txt
+  software_repo_url: https://github.com/lpereira/lwan.git
+  software_sha: 0d1628946684b2cc4c643fa58751addd5dbbc4ba
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 2b03c9febfc483ccbaab27fc94cf1b3413d81d714f6ff1ef27d880614361b2a6
+  error_category: RC13
+  root_cause_commit: 3cb40844ca42b22d525f22f4d704d8d832d603d3
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-19'
 - project: ndpi
   language: c++
   error_time: '2026-04-13'
@@ -463,7 +989,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-19'
 - project: bazel-rules-fuzzing-test
   language: c++
   error_time: '2025-12-30'
@@ -479,7 +1005,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-19'
 - project: bls-signatures
   language: c++
   error_time: '2025-02-23'
@@ -495,7 +1021,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-19'
 - project: dulwich
   language: python
   error_time: '2025-07-12'
@@ -511,7 +1037,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-11'
+  fix_date: '2026-08-19'
 - project: envoy
   language: c++
   error_time: '2025-12-11'
@@ -527,7 +1053,52 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-19'
+- project: g-py-crc32c
+  language: python
+  error_time: '2025-12-11'
+  oss-fuzz_sha: 099b4909f37e7f712f6f444c4ba266a5bcfc321f
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-f541f911-cd7f-46c7-8ed2-6b1dde971f6c.txt
+  software_repo_url: https://github.com/googleapis/python-crc32c
+  software_sha: 42e5268c7e6077a71e54b342ada4ed2843dbc01e
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5a22963e0582b5ce74e3dac5c175a321dc0cbe319c2851c370b885588327a055
+  error_category: RC9
+  root_cause_commit: 42e5268c7e6077a71e54b342ada4ed2843dbc01e
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+- project: glaze
+  language: c++
+  error_time: '2025-12-19'
+  oss-fuzz_sha: 4c908a6e1075d20c9d0e59e7fff5fe8be4dfd914
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-1cbc2276-23e1-4568-a7e9-5814ce96e849.txt
+  software_repo_url: https://github.com/stephenberry/glaze
+  software_sha: a67f6f03d25b2869b8a878a5fc6e7f8c20ed73e9
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 6878d9fa5979df15166e69f79e340ad4dc686056f5c8bfcd76614ca492b73d9b
+  error_category: RC13
+  root_cause_commit: 4cbddc3e491f48390ada24651118bfbcd994820f
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+- project: hiredis
+  language: c
+  error_time: '2025-04-10'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-ce84f796-6b52-4784-8e5a-c41c52a879b9.txt
+  software_repo_url: https://github.com/redis/hiredis
+  software_sha: e834b57f05871c05f7f13e461b78d20907aa3a02
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c099d3d710d12d5d9a39498463ff10973977d1c7a85e9a0fbe00c7f0a0fa9fb8
+  error_category: RC13
+  root_cause_commit: f14e5a44f4f7ca672a74ab2381eea8b903d6ce61
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
 - project: libcacard
   language: c
   error_time: '2025-11-22'
@@ -541,9 +1112,6 @@
   base_image_digest: 5b4a8d18f9a854c128279c66c609f4f9c8dc29da9681ec1ecb98c5c1bb7f98e6
   error_category: 'RC9: Dependency issues'
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: libecc
   language: c++
   error_time: '2025-04-12'
@@ -557,9 +1125,6 @@
   base_image_digest: 19782f7fe8092843368894dbc471ce9b30dd6a2813946071a36e8b05f5b1e27e
   error_category: 'RC9: Dependency issues'
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: linkerd2-proxy
   language: rust
   error_time: '2024-11-06'
@@ -573,9 +1138,6 @@
   base_image_digest: ba757e00046d6088d36985f18cee9198772b26c03b10c40364065888f6da04ba
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: mariadb
   language: c++
   error_time: '2025-09-16'
@@ -589,9 +1151,21 @@
   base_image_digest: 192b038764086fcd174a3afd7341abe6e922701b0d8440524552fd9976e72a30
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
+- project: miniz_oxide
+  language: rust
+  error_time: '2025-12-17'
+  oss-fuzz_sha: e9d36924052c7af1d5bd82071760c1eb114e898b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-421b3525-99ac-442f-9b66-8ffc138c18bf.txt
+  software_repo_url: https://github.com/Frommi/miniz_oxide
+  software_sha: e70e395c8f94a97b3c056a1b2fdab54163624836
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: ba757e00046d6088d36985f18cee9198772b26c03b10c40364065888f6da04ba
+  error_category: RC13
+  root_cause_commit: b7a5908e1b83bde6b60568f6a67952890ab925a9
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
 - project: mongo-go-driver
   language: go
   error_time: '2025-04-01'
@@ -605,9 +1179,6 @@
   base_image_digest: 9806209b04778365618e577b790c9f6cc32b1c76478d3e3c0d36a27066a9cdd8
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: numexpr
   language: python
   error_time: '2025-06-09'
@@ -621,9 +1192,6 @@
   base_image_digest: ac324a2bbc1c4af0153b53528ee40b99dddca2c8466d66e7a051c598470b51f5
   error_category: RC9
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: perfetto
   language: c++
   error_time: '2025-09-09'
@@ -637,9 +1205,6 @@
   base_image_digest: c099d3d710d12d5d9a39498463ff10973977d1c7a85e9a0fbe00c7f0a0fa9fb8
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: postgresql
   language: c
   error_time: '2025-10-10'
@@ -653,9 +1218,6 @@
   base_image_digest: b79d3707eeffb6c75a530689b5ade9038bd005628f44d30c62680f4b810c3900
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: powsybl-java
   language: jvm
   error_time: '2025-09-05'
@@ -669,9 +1231,6 @@
   base_image_digest: 0e840cdb4acf06981b9461f04eb825531842b2117bcdab1423961492c293584f
   error_category: RC9
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: scrypt
   language: rust
   error_time: '2025-02-23'
@@ -685,9 +1244,6 @@
   base_image_digest: 250e04396d9dc78bdffadf2dc5dcb36fabdf176bbbe02a69d648deffb21edd80
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: serde-yaml
   language: rust
   error_time: '2025-09-09'
@@ -701,9 +1257,6 @@
   base_image_digest: ba757e00046d6088d36985f18cee9198772b26c03b10c40364065888f6da04ba
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: spring-integration
   language: jvm
   error_time: '2023-06-23'
@@ -717,9 +1270,6 @@
   base_image_digest: a8548b0e00e39be28ab27d2c8c89345b2aa2c4351a23a1c65a97e89692aafb10
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: starnix-netlink
   language: rust
   error_time: '2025-01-11'
@@ -733,9 +1283,6 @@
   base_image_digest: ba757e00046d6088d36985f18cee9198772b26c03b10c40364065888f6da04ba
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: tensorflow
   language: c++
   error_time: '2024-05-06'
@@ -749,9 +1296,6 @@
   base_image_digest: 19782f7fe8092843368894dbc471ce9b30dd6a2813946071a36e8b05f5b1e27e
   error_category: RC13
   fixed_state: 'no'
-  state: 'yes'
-  fix_result: Failure
-  fix_date: '2026-08-12'
 - project: toml_edit
   language: rust
   error_time: '2025-05-01'
@@ -767,7 +1311,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: bazel-rules-fuzzing-test
   language: c++
   error_time: '2026-02-03'
@@ -783,7 +1327,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: cosmos-sdk
+  language: go
+  error_time: '2026-06-14'
+  oss-fuzz_sha: d58fd64ccd646ee3b557c4d9ac694ff6d776302a
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-29323dd0-2b4e-40c2-9c03-313e6298b3b3.txt
+  software_repo_url: https://github.com/cosmos/cosmos-sdk
+  software_sha: f2983164196e096172cad75814153939ee764a36
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: dapr
   language: go
   error_time: '2023-04-14'
@@ -799,7 +1359,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: checkstyle
+  language: jvm
+  error_time: '2026-01-04'
+  oss-fuzz_sha: d58fd64ccd646ee3b557c4d9ac694ff6d776302a
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8b64f846-f0e1-495b-aa88-c082f0b4cdd4.txt
+  software_repo_url: https://github.com/checkstyle/checkstyle
+  software_sha: 9f2d99295eab9dcc4f2b0adb5384678a21f2c2f9
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: d4d8b420a4de8dcde2f2677f38b8ea4ba6f9f3bcb9773859ad3b3ca676351530
+  error_category: RC9
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: dragonfly
   language: go
   error_time: '2024-12-19'
@@ -815,7 +1391,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: apache-axis2
   language: jvm
   error_time: '2026-01-06'
@@ -831,7 +1407,41 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: bc-gh
+  language: c
+  error_time: '2025-03-19'
+  oss-fuzz_sha: f89faec982e111d2a968bd3497179b623fec9334
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-ef9facea-60a7-437a-b2ab-772faa4a4edd.txt
+  software_repo_url: https://github.com/gavinhoward/bc.git
+  software_sha: 77fcd66898f754cb1dbce262c6c0efd0879f855c
+  engine: afl
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 6526c483abd4eb41ca22150b503d7c2182faf1602cd6767fbfe8495a59592af9
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: go-ldap
+  language: go
+  error_time: '2024-12-27'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8b13735f-a01d-40cb-b53d-64a6bc47f72f.txt
+  software_repo_url: https://github.com/go-ldap/ldap.git
+  software_sha: 5937e979b628df9e053115ef60f4f7521e62b8b4
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC15
+  root_cause_commit: aebc65e39b4db0f1ed22d7add9f7bee1e5b351aa
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: h2database
   language: jvm
   error_time: '2023-04-27'
@@ -847,7 +1457,57 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: g-apis-py-api-core
+  language: python
+  error_time: '2026-02-24'
+  oss-fuzz_sha: d58fd64ccd646ee3b557c4d9ac694ff6d776302a
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-43668c34-008b-4f31-a3df-9a3722298b7e.txt
+  software_repo_url: https://github.com/googleapis/python-api-core
+  software_sha: daf3040befffb7dd9629c43c4201e6e4db693b15
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC14
+  root_cause_commit: daf3040befffb7dd9629c43c4201e6e4db693b15
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: g-api-python-bigquery-storage
+  language: python
+  error_time: '2025-09-13'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-f96935b9-b8af-40d2-b2ea-325f3935a9db.txt
+  software_repo_url: https://github.com/googleapis/python-bigquery-storage
+  software_sha: 316faaff534c3a989d92ff78efd1cfaa0e45a10b
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: g-api-python-firestore
+  language: python
+  error_time: '2026-03-03'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-78ed883b-52c7-4589-9624-fe3f63d48376.txt
+  software_repo_url: https://github.com/googleapis/python-firestore
+  software_sha: fef361e7fae0cf205e17808837898ea8c2624712
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC10
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: html5lib-python
   language: python
   error_time: '2026-02-09'
@@ -863,7 +1523,77 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: g-api-auth-httplib2
+  language: python
+  error_time: '2026-02-10'
+  oss-fuzz_sha: d58fd64ccd646ee3b557c4d9ac694ff6d776302a
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-bfd939c9-f41f-47fc-9b85-95b63213c3d1.txt
+  software_repo_url: https://github.com/googleapis/google-auth-library-python-httplib2
+  software_sha: 3e9f3965da997b74c943eb640b351dbabfa3aa5b
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC13
+  root_cause_commit: 3e9f3965da997b74c943eb640b351dbabfa3aa5b
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: gcloud-error-py
+  language: python
+  error_time: '2026-02-24'
+  oss-fuzz_sha: 4f9a1fec7341ed2549652724c2c71ff01f01b817
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-5be4a875-99b3-47a1-b49f-1412b2e8f0bd.txt
+  software_repo_url: https://github.com/googleapis/python-error-reporting
+  software_sha: 7ac7f6b9038b01cc4b3e0c4ca63df981485dd6db
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: ff7df5e68616bbce4ded310bf46fc1c7e4434697b8f56fec1edbff60b5c014bb
+  error_category: RC13
+  root_cause_commit: 7ac7f6b9038b01cc4b3e0c4ca63df981485dd6db
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: g-api-python-cloud-core
+  language: python
+  error_time: '2026-02-13'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-efb910de-b572-41f3-859e-5f7a6cb12381.txt
+  software_repo_url: https://github.com/googleapis/python-cloud-core
+  software_sha: 9a6896b4e219f1d76caf8c394ceceef02a91ac6b
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC13
+  root_cause_commit: 9a6896b4e219f1d76caf8c394ceceef02a91ac6b
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: g-cloud-logging-py
+  language: python
+  error_time: '2026-02-27'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-15171b4b-c891-4722-b9f2-3741d65857f2.txt
+  software_repo_url: https://github.com/googleapis/python-logging
+  software_sha: 509b92abdec56c0829796ea28ce9810aea014aea
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC9
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: kubernetes-cluster-api
   language: go
   error_time: '2024-10-31'
@@ -879,7 +1609,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: libra
   language: rust
   error_time: '2026-04-22'
@@ -895,7 +1625,23 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: jline3
+  language: jvm
+  error_time: '2023-10-10'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-e2b23fe8-8980-4c3f-b06a-e12e0c8d217d.txt
+  software_repo_url: https://github.com/jline/jline3
+  software_sha: 8755901404b201d36d1805debdc4a4a985d5e187
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: d4d8b420a4de8dcde2f2677f38b8ea4ba6f9f3bcb9773859ad3b3ca676351530
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
 - project: keycloak
   language: jvm
   error_time: '2025-02-20'
@@ -911,7 +1657,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: ipykernel
   language: python
   error_time: '2024-10-26'
@@ -927,7 +1673,88 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: jimfs
+  language: jvm
+  error_time: '2025-10-28'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-1eed1c19-1005-4c06-8c98-6eb61b5874c8.txt
+  software_repo_url: https://github.com/google/jimfs
+  software_sha: 5b69d0ee4c943bc47a1ee15de7947d43559eba0d
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: d4d8b420a4de8dcde2f2677f38b8ea4ba6f9f3bcb9773859ad3b3ca676351530
+  error_category: RC13
+  root_cause_commit: 6faa637b19b13b9a816e7896a0605625ea422e7a
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: kubeflow-pipelines
+  language: go
+  error_time: '2026-02-26'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-4094b1cd-0b36-4de8-bb64-cfdefbc5d36e.txt
+  software_repo_url: https://github.com/kubeflow/pipelines
+  software_sha: ab1231a5c32c688bcb62314e467011b586aee796
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC13
+  root_cause_commit: dad89f1f5997d186554d2a5749a803035b9f53bc
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: mdbook-i18n-helpers
+  language: rust
+  error_time: '2025-06-03'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-e88ad334-4541-4357-ab28-22e610f1b5df.txt
+  software_repo_url: https://github.com/google/mdbook-i18n-helpers.git
+  software_sha: 4aa71a34f1c0f22693d8a1d39e377323401c48fa
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: d97285a999f4c16057b8b12b63faf619302f11c9ee953efc8c54c86fb3426517
+  error_category: RC13
+  root_cause_commit: 7181fcd0d3f6022d85ef37d5f6e6730e29489ee7
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+- project: ossf-scorecard
+  language: go
+  error_time: '2026-02-14'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-639cb04f-80dc-48a0-b5fa-1fb42bd2b6f6.txt
+  software_repo_url: https://github.com/ossf/scorecard
+  software_sha: 4b8e9d1b5db8f986de4f4c666f05694f8252bfa4
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 98776a60fd2d7725ae6d046a0eecdaa906c998bc7244993abc444949ee2fa921
+  error_category: RC13
+  root_cause_commit: 4eda2f56f70fa619b8785a63deb68aac8e3538ff
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+- project: pendulum
+  language: python
+  error_time: '2023-10-01'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-a0ae2eef-d1ce-4510-b32b-53372a36cfa9.txt
+  software_repo_url: https://github.com/sdispater/pendulum
+  software_sha: 0a88aece8ece78e44c6a9dac1d9db661cfdfbee0
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC9
+  root_cause_commit: 5c01d00c52142b16934a6c3e2f191c42dd8bfb24
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
 - project: okhttp
   language: jvm
   error_time: '2022-12-29'
@@ -943,7 +1770,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: pydantic
   language: python
   error_time: '2023-04-27'
@@ -959,7 +1786,61 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: proto-plus-python
+  language: python
+  error_time: '2026-02-24'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-926d84c7-1959-4ae6-bdf3-b134ceb775e8.txt
+  software_repo_url: https://github.com/googleapis/proto-plus-python
+  software_sha: 1cd8bcb8fd12df99623d09c5f690348fdf5ae503
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: c5fd81433b8ceec0335387187152e856e401fa09e859ba778008e63be14d0701
+  error_category: RC13
+  root_cause_commit: 1cd8bcb8fd12df99623d09c5f690348fdf5ae503
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: publicsuffix-list
+  language: go
+  error_time: '2023-11-28'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-0ddbd59b-b5f7-4572-a000-02c69a224c99.txt
+  software_repo_url: https://github.com/publicsuffix/list
+  software_sha: d254724e91abd027ba21af72678a69edea76b136
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC13
+  root_cause_commit: 2d1427a99ee0c3eef8b22d06c4d7099200ed41ac
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: nats
+  language: go
+  error_time: '2025-08-05'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-8424fb52-40fc-4105-9176-90bd77e4ed9d.txt
+  software_repo_url: https://github.com/nats-io/nats-server
+  software_sha: da6b158496e4ef505087642e0258c0e2e1e38567
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC14
+  root_cause_commit: 7d8d09b43bd3f9b9afc8dd549407c32b80f6179c
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: opt_einsum
   language: python
   error_time: '2025-06-09'
@@ -975,7 +1856,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: opencensus-cpp
   language: c++
   error_time: '2023-10-11'
@@ -991,7 +1872,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: quartz
   language: jvm
   error_time: '2025-09-30'
@@ -1007,7 +1888,76 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: setuptools
+  language: python
+  error_time: '2026-02-09'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-2eab64a5-206b-42ba-b100-1f3ad4417c99.txt
+  software_repo_url: https://github.com/pypa/setuptools
+  software_sha: 84ed5913724df5a12dc804e1d5efe12508e706d2
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: d223a882810372830fd7968eb3e64533f3a2318c90be43ac753a46a15946faec
+  error_category: RC9
+  root_cause_commit: 530d11498af526c4210d8eeaa1ed6c63f44a390f
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: roaring-bitmap
+  language: jvm
+  error_time: '2025-08-22'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-aa15b5a7-5728-48cc-bb36-6dfd2fb25f9f.txt
+  software_repo_url: https://github.com/RoaringBitmap/RoaringBitmap
+  software_sha: 458c6e4bb3175432a87a09043d5ef538173f0487
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5388ee3d06c4a12ed4ee18d74bb35cab0084252fcde1aa1e8393c57ce865371e
+  error_category: RC10
+  root_cause_commit: e4ce049abbbc0f40bd945abdef36cb23255d492d
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: runc
+  language: go
+  error_time: '2025-03-02'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-9e021dfc-6edb-4903-821e-3d07b365624e.txt
+  software_repo_url: https://github.com/opencontainers/runc
+  software_sha: 4ccedcbfe826933dd0773515a5e876f2dcd304ee
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 766e7ffff42d1b643d1ea216e3bba4f494d5261e8bdcc5c6cdb349474c58a2a9
+  error_category: RC13
+  root_cause_commit: a75076b4a413f628c4b6aa4c5568b159aa128a56
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
+- project: tdengine
+  language: c
+  error_time: '2026-05-24'
+  oss-fuzz_sha: a36602013afc8f6ac8e8f4fc6cec802b3727961b
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-657b9432-08cb-47d3-8c4e-11604e8ef84d.txt
+  software_repo_url: https://github.com/taosdata/TDengine
+  software_sha: 2bfd5023de96962a0dbcf7d44dd68a17c9e05d06
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: ea81293a4327e2ba75ffc4447b924ea96003b18b0ce22ca4c33d9710ef96dd79
+  error_category: RC13
+  root_cause_commit: ddc6982cb8cd9e13f296b8c4290abd3868a7dd5a
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
 - project: threetenbp
   language: jvm
   error_time: '2025-09-30'
@@ -1023,7 +1973,41 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
+- project: sigstore-java
+  language: jvm
+  error_time: '2025-11-11'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-9260383d-a52e-4f0e-b7e9-2726f222e711.txt
+  software_repo_url: https://github.com/sigstore/sigstore-java
+  software_sha: 70635d79c3a2586ae48a3c092581279db78153a0
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5388ee3d06c4a12ed4ee18d74bb35cab0084252fcde1aa1e8393c57ce865371e
+  error_category: RC13
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Failure
+  fix_date: '2026-08-18'
+- project: sketches-core
+  language: jvm
+  error_time: '2025-02-25'
+  oss-fuzz_sha: 4a96094d3e3d9efad421ee9e4a7e4d4c78526e9c
+  fuzzing_build_error_log: https://oss-fuzz-build-logs.storage.googleapis.com/log-971232e9-0269-43d0-8baf-6171bb937399.txt
+  software_repo_url: https://github.com/DataSketches/sketches-core
+  software_sha: 9255b508e2047217aceeee6e059af72fd631e14b
+  engine: libfuzzer
+  sanitizer: address
+  architecture: x86_64
+  base_image_digest: 5388ee3d06c4a12ed4ee18d74bb35cab0084252fcde1aa1e8393c57ce865371e
+  error_category: RC10
+  root_cause_commit: 8dbbc8eee164a8633f65ca57ce4a6e564c972a84
+  root_cause_workspace: UPSTREAM
+  fixed_state: 'no'
+  state: 'yes'
+  fix_result: Success
+  fix_date: '2026-08-18'
 - project: reload4j
   language: jvm
   error_time: '2024-12-11'
@@ -1039,7 +2023,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: rhino
   language: jvm
   error_time: '2026-01-02'
@@ -1055,7 +2039,7 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
 - project: rxjava
   language: jvm
   error_time: '2025-05-20'
@@ -1071,4 +2055,4 @@
   fixed_state: 'no'
   state: 'yes'
   fix_result: Failure
-  fix_date: '2026-08-12'
+  fix_date: '2026-08-18'
